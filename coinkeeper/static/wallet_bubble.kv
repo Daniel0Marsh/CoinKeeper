@@ -1,0 +1,59 @@
+<WalletBubble>:
+    size_hint_y: None
+    height: self.minimum_height
+
+    MDBoxLayout:
+        size_hint: 1, None
+        height: self.minimum_height
+        orientation: 'horizontal'
+        padding: "2dp"
+
+        MDCard:
+            size_hint: 1, None
+            elevation: 2
+            padding: "8dp"
+            height: label.texture_size[1] + self.padding[1] * 2
+
+            BoxLayout:
+                orientation: "vertical"
+                spacing: "5dp"
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    size_hint_x: 1  # Adjust this value to your preference
+
+                    MDLabel:
+                        id: label
+                        text: root.name
+                        theme_text_color: "Secondary"
+                        halign: "left"
+                        shorten: True
+                        shorten_from: 'right'
+
+                    BoxLayout:
+                        orientation: "horizontal"
+                        size_hint_x: 3.5  # Adjust this value to your preference
+                        spacing: 0
+                        halign: "center"
+
+                        MDLabel:
+                            id: address_label
+                            text: root.address
+                            theme_text_color: "Secondary"
+                            halign: "center"
+                            shorten: True
+                            shorten_from: 'right'
+                            size_hint_x: None
+                            width: dp(315)  # Adjust this value based on your content
+
+                        MDIconButton:
+                            icon: "content-copy"
+                            pos_hint: {"center_y": 0.5}
+                            halign: "center"
+                            on_release: app.copy_to_clipboard(root.address)
+
+                    MDIconButton:
+                        icon: "open-in-new"
+                        pos_hint: {"center_y": 0.5}
+                        halign: "right"
+                        on_release: app.wallet_screen_update(root.name)

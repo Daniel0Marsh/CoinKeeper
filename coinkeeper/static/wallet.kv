@@ -1,0 +1,268 @@
+<WalletScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+
+        MDTopAppBar:
+            title: 'CoinKeeper'
+            elevation: 2
+            right_action_items: [["home", lambda x: app.change_screen("home")], ["logout-variant", lambda x: app.change_screen("login")]]
+
+
+        BoxLayout:
+            orientation: "vertical"
+            spacing: "8dp"
+
+            ScrollView:
+                do_scroll_y: True
+                effect_cls: 'ScrollEffect'
+                bar_width: 0  # Increase the width of the scroll bar
+                size_hint_y: None
+                height: self.parent.height
+
+                MDBoxLayout:
+                    adaptive_height: True
+                    orientation: 'vertical'
+                    padding: "8dp"
+                    spacing: "8dp"
+
+
+                    MDCard:
+                        size_hint: None, None
+                        size: self.minimum_size
+                        elevation: 2
+                        spacing: '15dp'
+                        padding: '15dp'
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                        MDRectangleFlatButton:
+                            text: 'Deposit'
+                            on_release: app.copy_to_clipboard(root.address)
+
+                        MDRectangleFlatButton:
+                            text: 'Withdraw'
+                            on_release: root.Withdraw()
+
+                        MDRectangleFlatButton:
+                            text: 'Transaction History'
+                            on_release: app.change_screen("transaction_history")
+
+                        MDRectangleFlatButton:
+                            text: 'Delete'
+                            text_color: app.theme_cls.error_color
+                            on_release: root.delete(name.text)
+
+
+                    MDBoxLayout:
+                        adaptive_height: True
+                        orientation: 'horizontal'
+                        padding: "8dp"
+                        spacing: "8dp"
+
+
+                        MDCard:
+                            size_hint: 1, None
+                            size: "300dp", "200dp"
+                            pos_hint: {"center_x": .5}
+                            elevation: 2
+                            padding: "8dp"
+                            spacing: "8dp"
+                            md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                            BoxLayout:
+                                orientation: "vertical"
+                                spacing: "8dp"
+
+                                MDLabel:
+                                    id: balance_title
+                                    text:
+                                    theme_text_color: "Custom"
+                                    text_color: app.theme_cls.primary_color  # Set the text color to the primary color
+                                    font_style: 'H6'
+                                    halign: "center"
+                                    anchor_x: "center"
+                                    pos_hint: {"center_x": .5}
+                                    spacing: "15dp"
+
+
+
+                                BoxLayout:
+                                    orientation: "vertical"
+                                    spacing: "5dp"
+
+                                    BoxLayout:
+                                        orientation: "horizontal"
+                                        spacing: "5dp"
+
+                                        Widget:
+
+                                        MDLabel:
+                                            text: "USD"
+                                            font_style: "Caption"
+                                            theme_text_color: "Secondary"
+                                            halign: "left"
+
+                                        MDSwitch:
+                                            id: switch_currency
+                                            halign: "center"
+                                            active: False
+                                            on_active: root.switch_currency()
+
+                                        MDLabel:
+                                            text: "BTC"
+                                            font_style: "Caption"
+                                            theme_text_color: "Secondary"
+                                            halign: "right"
+
+                                        Widget:
+
+
+
+                                MDSeparator:
+
+                                BoxLayout:
+                                    orientation: "vertical"
+                                    spacing: "5dp"
+
+                                    BoxLayout:
+                                        orientation: "horizontal"
+                                        spacing: "5dp"
+
+                                        MDLabel:
+                                            id: balance
+                                            text:
+                                            font_style: "Caption"
+                                            theme_text_color: "Secondary"
+                                            halign: "left"
+
+                                        MDLabel:
+                                            id: usd_percentage
+                                            text:
+                                            font_style: "Caption"
+                                            theme_text_color: "Secondary"
+                                            halign: "center"
+
+                                        MDLabel:
+                                            id: target
+                                            text:
+                                            font_style: "Caption"
+                                            theme_text_color: "Secondary"
+                                            halign: "right"
+
+                                    MDSlider:
+                                        id: target_slider
+                                        disabled: True
+                                        min: 0
+                                        max:
+                                        value:
+
+                                MDSeparator:
+
+                                BoxLayout:
+                                    orientation: "vertical"
+                                    spacing: "5dp"
+
+                                    BoxLayout:
+                                        orientation: "horizontal"
+                                        spacing: "5dp"
+
+                                        MDLabel:
+                                            id: current_days
+                                            text:
+                                            font_style: "Caption"
+                                            theme_text_color: "Secondary"
+                                            halign: "left"
+
+                                        MDLabel:
+                                            id: days_percentage
+                                            text:
+                                            font_style: "Caption"
+                                            theme_text_color: "Secondary"
+                                            halign: "center"
+
+                                        MDLabel:
+                                            id: max_days
+                                            text:
+                                            font_style: "Caption"
+                                            theme_text_color: "Secondary"
+                                            halign: "right"
+
+                                    MDSlider:
+                                        id: days_slider
+                                        disabled: True
+                                        min: 0
+                                        max:
+                                        value:
+
+                        MDCard:
+                            size_hint: None, None
+                            size: "300dp", "200dp"
+                            pos_hint: {"center_x": 0.5}
+                            elevation: 2
+                            padding: "16dp"
+                            md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                            BoxLayout:
+                                orientation: "vertical"
+                                spacing: "8dp"
+
+                                MDLabel:
+                                    id: name
+                                    text:
+                                    font_style: 'H6'
+                                    halign: "center"
+                                    anchor_x: "center"
+                                    spacing: "15dp"
+
+                                MDLabel:
+                                    id: status
+                                    text:
+                                    theme_text_color: "Secondary"
+                                    font_style: "Subtitle1"
+                                    halign: "center"
+                                    anchor_x: "center"
+
+                                MDLabel:
+                                    id: unlock_date
+                                    text: "Unlock Date: 03-12-23"
+                                    theme_text_color: "Secondary"
+                                    font_style: "Subtitle1"
+                                    halign: "center"
+                                    anchor_x: "center"
+
+                                MDLabel:
+                                    id: open_date
+                                    text:
+                                    theme_text_color: "Secondary"
+                                    font_style: "Subtitle1"
+                                    halign: "center"
+                                    anchor_x: "center"
+
+                                MDSeparator:
+
+                                MDRectangleFlatButton:
+                                    id: download
+                                    text: 'Download Wallet (Encrypted)'
+                                    pos_hint: {"center_x": 0.5}
+                                    on_release: root.download()
+
+                    MDCard:
+                        size_hint: 1, None
+                        size: "300dp", "260dp"
+                        pos_hint: {"center_x": 0.5}
+                        elevation: 2
+                        padding: "16dp"
+                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                        BoxLayout:
+                            orientation: "vertical"
+                            spacing: "8dp"
+
+                            MDLabel:
+                                text: 'Proformance'
+                                theme_text_color: "Custom"
+                                text_color: app.theme_cls.primary_color  # Set the text color to the primary color
+                                font_style: 'H6'
+                                halign: "center"
+                                anchor_x: "center"
+                                spacing: "15dp"

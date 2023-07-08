@@ -1,0 +1,128 @@
+<WithdrawScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: '15dp'
+        padding: '15dp'
+        pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+
+        MDCard:
+            size_hint: None, None
+            size: "500dp", "500dp"
+            elevation: 2
+            spacing: '15dp'
+            padding: '15dp'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: '15dp'
+                padding: '15dp'
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+                MDLabel:
+                    id: balance_title
+                    text:
+                    theme_text_color: "Custom"
+                    text_color: app.theme_cls.primary_color  # Set the text color to the primary color
+                    font_style: 'H6'
+                    halign: "center"
+                    anchor_x: "center"
+                    pos_hint: {"center_x": .5}
+                    spacing: "15dp"
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    hight: dp(30)
+                    spacing: '8dp'
+                    pos_hint: {'center_x': 0.5}
+
+                    MDRoundFlatIconButton:
+                        text: '25%'
+                        on_release: root.set_amount(0.25)
+
+                    MDRoundFlatIconButton:
+                        text: '50%'
+                        on_release: root.set_amount(0.5)
+
+                    MDRoundFlatIconButton:
+                        text: '100%'
+                        on_release: root.set_amount(1.0)
+
+                    MDRoundFlatIconButton:
+                        text: 'USD/BTC'
+                        on_release: root.change_currency()
+
+                MDTextField:
+                    id: amount
+                    hint_text: 'Amount'
+                    size_hint_y: None
+                    height: dp(48)
+                    mode: "fill"
+                    icon_right: "currency-usd"
+
+                MDTextField:
+                    id: address
+                    hint_text: 'Send To Address'
+                    size_hint_y: None
+                    height: dp(48)
+                    mode: "fill"
+                    icon_right: "qrcode-scan"
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(48)
+
+                    MDTextField:
+                        id: password
+                        hint_text: 'Wallet Password'
+                        size_hint_y: None
+                        height: dp(48)
+                        mode: "fill"
+                        password: True
+                        icon_right: "lock"
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    spacing: '15dp'
+                    padding: '15dp'
+                    pos_hint: {'center_x': 0.5}
+
+                    MDLabel:
+                        id: btc_fee
+                        text:
+                        theme_text_color: "Primary"
+                        font_style: "Subtitle2"
+                        halign: "center"
+                        size_hint_y: None
+                        height: dp(48)
+
+                    MDLabel:
+                        id: gross_cost
+                        text: "Net Cost: "
+                        theme_text_color: "Primary"
+                        font_style: "Subtitle2"
+                        halign: "center"
+                        size_hint_y: None
+                        height: dp(48)
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    spacing: '15dp'
+                    padding: '15dp'
+                    pos_hint: {'center_x': 0.5}
+
+                    MDRectangleFlatButton:
+                        text: 'Send/Withdraw'
+                        size_hint: None, None
+                        size: dp(200), dp(48)
+                        on_release: root.send()
+
+                    MDRectangleFlatButton:
+                        text: 'Cancel'
+                        size_hint: None, None
+                        size: dp(200), dp(48)
+                        on_release: root.cancel()
+
+                    MDIconButton:
+                        icon: "help-circle"
+                        on_release: root.help()

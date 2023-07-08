@@ -1,0 +1,72 @@
+<CreateAccountScreen>:
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: '15dp'
+        padding: '15dp'
+        pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+
+        MDCard:
+            size_hint: None, None
+            size: "500dp", "450dp"
+            elevation: 2
+            spacing: '15dp'
+            padding: '15dp'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: '15dp'
+                padding: '15dp'
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+                MDTextField:
+                    id: first_name
+                    hint_text: 'First Name'
+                    size_hint_y: None
+                    height: dp(48)
+
+                MDTextField:
+                    id: last_name
+                    hint_text: 'Last Name'
+                    size_hint_y: None
+                    height: dp(48)
+
+                MDTextField:
+                    id: email
+                    hint_text: 'Email'
+                    size_hint_y: None
+                    height: dp(48)
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(48)
+
+                    MDTextField:
+                        id: password
+                        hint_text: 'Password'
+                        size_hint_y: None
+                        height: dp(48)
+                        password: True
+                    MDIconButton:
+                        id: password_icon
+                        icon: 'eye-off'
+                        on_release: root.show_password()
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    spacing: '15dp'
+                    padding: '15dp'
+                    pos_hint: {'center_x': 0.5}
+
+                    MDRectangleFlatButton:
+                        text: 'Create Account'
+                        size_hint: None, None
+                        size: dp(200), dp(48)
+                        on_release: root.create_account()
+
+                    MDRectangleFlatButton:
+                        text: 'Cancel'
+                        size_hint: None, None
+                        size: dp(200), dp(48)
+                        on_release: app.change_screen("login")

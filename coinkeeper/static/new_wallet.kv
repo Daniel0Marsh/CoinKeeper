@@ -1,0 +1,93 @@
+<NewWalletScreen>:
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: '15dp'
+        padding: '15dp'
+        pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+
+        MDCard:
+            size_hint: None, None
+            size: "500dp", "450dp"
+            elevation: 2
+            spacing: '15dp'
+            padding: '15dp'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: '15dp'
+                padding: '15dp'
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+                MDTextField:
+                    id: wallet_name
+                    hint_text: 'Wallet Name'
+                    size_hint_y: None
+                    height: dp(48)
+
+                MDTextField:
+                    id: target_amount
+                    hint_text: 'Target Amount'
+                    size_hint_y: None
+                    height: dp(48)
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(48)
+
+                    MDTextField:
+                        id: password
+                        hint_text: 'Wallet Password'
+                        size_hint_y: None
+                        height: dp(48)
+                        password: True
+                    MDIconButton:
+                        id: password_icon
+                        icon: 'eye-off'
+                        on_release: root.show_password()
+
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(48)
+
+                    MDTextField:
+                        id: date_of_completion
+                        hint_text: 'Unlock Date'
+                        size_hint_x: None
+                        width: dp(140)
+                        readonly: True
+                        on_focus: if self.focus: root.show_date_picker()
+                    MDIconButton:
+                        icon: 'calendar'
+                        on_release: root.show_date_picker()
+
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    spacing: '15dp'
+                    padding: '15dp'
+                    pos_hint: {'center_x': 0.5}
+
+                    MDRectangleFlatButton:
+                        text: 'Create Wallet'
+                        size_hint: None, None
+                        size: dp(200), dp(48)
+                        on_release: root.create_wallet()
+
+                    MDRectangleFlatButton:
+                        text: 'Upload Wallet (Json)'
+                        size_hint: None, None
+                        size: dp(200), dp(48)
+                        on_release: app.open_file_manager()
+
+                    MDRectangleFlatButton:
+                        text: 'Cancel'
+                        size_hint: None, None
+                        size: dp(200), dp(48)
+                        on_release: app.change_screen("home")
+
+                    MDIconButton:
+                        icon: "help-circle"
+                        on_release: root.help()

@@ -1,0 +1,108 @@
+# home.kv
+
+<HomeScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+
+        MDTopAppBar:
+            title: 'CoinKeeper'
+            elevation: 2
+            right_action_items: [["cog", lambda x: app.change_screen("settings")], ["logout-variant", lambda x: app.change_screen("login")]]
+
+
+        BoxLayout:
+            orientation: "vertical"
+            spacing: "8dp"
+
+            ScrollView:
+                do_scroll_y: True
+                effect_cls: 'ScrollEffect'
+                bar_width: 0  # Increase the width of the scroll bar
+                size_hint_y: None
+                height: self.parent.height
+
+                MDBoxLayout:
+                    adaptive_height: True
+                    orientation: 'vertical'
+                    padding: "8dp"
+                    spacing: "8dp"
+
+                    MDCard:
+                        size_hint: None, None
+                        size: self.minimum_size
+                        elevation: 2
+                        spacing: '15dp'
+                        padding: '15dp'
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                        MDRectangleFlatButton:
+                            text: 'Create New Wallet'
+                            on_release: app.change_screen("newWallet")
+
+                        MDRectangleFlatButton:
+                            text: 'User History'
+                            on_release: app.change_screen("user_history")
+
+                        MDRectangleFlatButton:
+                            text: 'Charts'
+
+                    MDCard:
+                        size_hint: 1, None
+                        size: "300dp", "200dp"
+                        pos_hint: {"center_x": .5}
+                        elevation: 2
+                        padding: "8dp"
+                        spacing: "8dp"
+                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+
+                        BoxLayout:
+                            orientation: "vertical"
+                            spacing: "8dp"
+
+                            MDLabel:
+                                text: "My Wallets"
+                                font_style: "H6"
+                                theme_text_color: "Primary" if app.theme_cls.theme_style == 'Dark' else "Secondary"
+
+                            ScrollView:
+                                do_scroll_y: True
+                                effect_cls: 'ScrollEffect'
+                                bar_width: 0
+                                size_hint_y: None
+                                height: self.parent.height - dp(20)  # Adjust the height based on label height
+
+                                MDBoxLayout:
+                                    adaptive_height: True
+                                    orientation: 'vertical'
+
+                                    MDBoxLayout:
+                                        orientation: 'vertical'
+                                        size_hint_y: None
+                                        adaptive_height: True
+                                        radius: [20, 20, 0, 0]
+                                        MDList:
+                                            id: walletlist
+                                            spacing: 5
+
+                    MDCard:
+                        size_hint: 1, None
+                        size: "300dp", "270dp"
+                        pos_hint: {"center_x": .5}
+                        elevation: 2
+                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                        ScrollView:
+                            do_scroll_y: True
+                            effect_cls: 'ScrollEffect'
+                            bar_width: 0  # Increase the width of the scroll bar
+                            size_hint_y: None
+                            height: self.parent.height
+
+                            BoxLayout:
+                                id: table
+                                adaptive_height: True
+                                orientation: "vertical"
+                                halign:"center"
+                                size_hint: 1, 1

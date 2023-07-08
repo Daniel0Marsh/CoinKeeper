@@ -1,0 +1,191 @@
+<SettingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+
+        MDTopAppBar:
+            title: 'CoinKeeper'
+            elevation: 2
+            right_action_items: [["home", lambda x: app.change_screen("home")], ["logout-variant", lambda x: app.change_screen("login")]]
+
+
+        BoxLayout:
+            orientation: "vertical"
+            spacing: "8dp"
+
+            ScrollView:
+                do_scroll_y: True
+                effect_cls: 'ScrollEffect'
+                bar_width: 0
+                size_hint_y: None
+                height: self.parent.height - dp(20)  # Adjust the height based on label height
+
+                MDBoxLayout:
+                    adaptive_height: True
+                    orientation: 'vertical'
+                    padding: "8dp"
+                    spacing: "8dp"
+
+
+                    MDCard:
+                        size_hint: 1, None
+                        size: "300dp", "300dp"
+                        pos_hint: {"center_x": .5}
+                        elevation: 2
+                        padding: "8dp"
+                        spacing: "8dp"
+                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: '15dp'
+                            padding: '15dp'
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+                            MDLabel:
+                                text: "App settings"
+                                font_style: "H6"
+                                theme_text_color: "Primary" if app.theme_cls.theme_style == 'Dark' else "Secondary"
+
+                            BoxLayout:
+                                size_hint_y: None
+                                height: dp(48)
+
+                                MDLabel:
+                                    text: "Turn on Dark mode:"
+                                    size_hint_x: None
+                                    width:  dp(300)
+                                    theme_text_color: "Primary" if app.theme_cls.theme_style == 'Dark' else "Secondary"
+
+                                MDSwitch:
+                                    id: theme_switch
+                                    pos_hint: {"center_x": 0.5}
+                                    on_active:
+                                        app.switch_theme_style(self.active)
+
+                            BoxLayout:
+                                size_hint_y: None
+                                height: dp(48)
+
+                                MDLabel:
+                                    text: "Turn on notifications:"
+                                    size_hint_x: None
+                                    width:  dp(300)
+                                    theme_text_color: "Primary" if app.theme_cls.theme_style == 'Dark' else "Secondary"
+
+                                MDSwitch:
+                                    id: switch_notifications
+                                    pos_hint: {"center_x": 0.5}
+                                    active: False
+                                    on_active:
+
+                            MDRectangleFlatButton:
+                                text: 'Save'
+                                size_hint: None, None
+                                size: dp(200), dp(48)
+                                on_release: root.save_app_settings()
+
+
+                    MDCard:
+                        size_hint: 1, None
+                        size: "300dp", "350dp"
+                        pos_hint: {"center_x": .5}
+                        elevation: 2
+                        padding: "8dp"
+                        spacing: "8dp"
+                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: '15dp'
+                            padding: '15dp'
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+
+                            MDLabel:
+                                text: "User Data"
+                                font_style: "H6"
+                                theme_text_color: "Primary" if app.theme_cls.theme_style == 'Dark' else "Secondary"
+
+                            MDTextField:
+                                id: first_name
+                                hint_text: 'First Name'
+                                size_hint_y: None
+                                height: dp(48)
+                                opposite_colors: True
+
+                            MDTextField:
+                                id: last_name
+                                hint_text: 'Last Name'
+                                size_hint_y: None
+                                height: dp(48)
+                                opposite_colors: True
+
+                            MDTextField:
+                                id: email
+                                hint_text: 'Email'
+                                size_hint_y: None
+                                height: dp(48)
+                                theme_text_color: "Primary" if app.theme_cls.theme_style == 'Dark' else "Secondary"
+
+                            MDRectangleFlatButton:
+                                text: 'Save'
+                                size_hint: None, None
+                                size: dp(200), dp(48)
+                                on_release: root.save_user_data()
+
+
+                    MDCard:
+                        size_hint: 1, None
+                        size: "300dp", "300dp"
+                        pos_hint: {"center_x": .5}
+                        elevation: 2
+                        padding: "8dp"
+                        spacing: "8dp"
+                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
+
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: '15dp'
+                            padding: '15dp'
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+                            MDLabel:
+                                text: "Change Password"
+                                font_style: "H6"
+                                theme_text_color: "Primary" if app.theme_cls.theme_style == 'Dark' else "Secondary"
+
+                            BoxLayout:
+                                size_hint_y: None
+                                height: dp(48)
+
+                                MDTextField:
+                                    id: old_password
+                                    hint_text: 'Old Password'
+                                    size_hint_y: None
+                                    height: dp(48)
+                                    password: True
+                                MDIconButton:
+                                    id: old_password_icon
+                                    icon: 'eye-off'
+                                    on_release: root.show_old_password()
+
+                            BoxLayout:
+                                size_hint_y: None
+                                height: dp(48)
+
+                                MDTextField:
+                                    id: new_password
+                                    hint_text: 'New Password'
+                                    size_hint_y: None
+                                    height: dp(48)
+                                    password: True
+                                MDIconButton:
+                                    id: new_password_icon
+                                    icon: 'eye-off'
+                                    on_release: root.show_new_password()
+
+                            MDRectangleFlatButton:
+                                text: 'Save'
+                                size_hint: None, None
+                                size: dp(200), dp(48)
+                                on_release: root.save_password()
