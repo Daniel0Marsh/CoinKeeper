@@ -599,16 +599,37 @@ class MyApp(MDApp):
 
 
     def check_settings(self):
-        with open("data/user_data.json", "r") as file:
-            existing_data = json.load(file)
+        """ checks if there is user data and updates the setting accordingly, if no user data it sets the settings to default values"""
+        try:
+            with open("data/user_data.json", "r") as file:
+                existing_data = json.load(file)
 
-        switch_theme = existing_data["switch_theme"]
-        switch_notifications = existing_data["switch_notifications"]
+            switch_theme = existing_data["switch_theme"]
+            switch_notifications = existing_data["switch_notifications"]
+        except FileNotFoundError:
+            # Set default values
+            switch_theme = False
+            switch_notifications = False
+
+            # Save default values to file
+            user_data = {
+                "first_name": "",
+                "last_name": "",
+                "user_name": "",
+                "email": "",
+                "password": "",
+                "switch_theme": switch_theme,
+                "switch_notifications": switch_notifications,
+            }
+
+            with open("data/user_data.json", "w") as file:
+                json.dump(user_data, file)
 
         if switch_theme:
             self.theme_cls.theme_style = 'Dark'
         else:
             self.theme_cls.theme_style = 'Light'
+
 
 
     def wallet_screen_update(self, wallet_name):
