@@ -24,7 +24,6 @@ import os
 import socket
 from crypto_btc import *
 
-
 Builder.load_file('static/login.kv')
 Builder.load_file('static/home.kv')
 Builder.load_file('static/wallet_bubble.kv')

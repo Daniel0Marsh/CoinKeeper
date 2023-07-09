@@ -237,7 +237,7 @@ class NewWalletScreen(Screen):
         }
 
         # Perform validation and wallet creation logic here
-        if self.check(wallet_info) and check_internet_connection():
+        if self.check(wallet_info):
             save_wallet(wallet_info)
             self.clear()
             add_history(event_type="new_wallet", info=wallet_name)
@@ -643,6 +643,10 @@ class MyApp(MDApp):
         self.theme_cls.theme_style_switch_animation_duration = 0.4
         self.title = 'CoinKeeper'
         self.check_settings()
+        #set app icon
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(current_dir, 'image', 'codeblock_ico_black.png')
+        self.icon = icon_path
 
         self.screen_manager = ScreenManager(transition=FadeTransition())
         self.screen_manager.add_widget(LoginScreen(name='login'))

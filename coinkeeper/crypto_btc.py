@@ -4,6 +4,7 @@ import cryptocode
 from bitcoin import *
 import bitcoin
 
+
 def get_exchange_rate():
     """ takes no arguments and returnes exchange_rate for btc - usd """
 
@@ -96,9 +97,6 @@ def send_transaction(send_to=None, from_address=None, amount=None):
         return True
 
     return False  # Invalid input
-
-
-
 
 
 def decrypt(enc_private_key, password):
