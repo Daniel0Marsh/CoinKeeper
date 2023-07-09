@@ -39,7 +39,6 @@ Builder.load_file('static/user_history.kv')
 Clock.max_iteration = 60 # Increase the iteration limit to 60 (or higher if needed)
 
 
-
 def show_popup(title, message, size=(400, 200), button_on=None):
     dialog = MDDialog(
         title=title,
