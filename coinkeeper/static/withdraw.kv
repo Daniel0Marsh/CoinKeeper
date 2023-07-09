@@ -58,7 +58,7 @@
                     size_hint_y: None
                     height: dp(48)
                     mode: "fill"
-                    icon_right: "currency-usd"
+                    icon_right:
 
                 MDTextField:
                     id: address
@@ -88,7 +88,7 @@
                     pos_hint: {'center_x': 0.5}
 
                     MDLabel:
-                        id: btc_fee
+                        id: fee
                         text:
                         theme_text_color: "Primary"
                         font_style: "Subtitle2"
@@ -98,7 +98,7 @@
 
                     MDLabel:
                         id: gross_cost
-                        text: "Net Cost: "
+                        text:
                         theme_text_color: "Primary"
                         font_style: "Subtitle2"
                         halign: "center"

@@ -22,9 +22,6 @@ def get_btc_balance(address):
     """Takes one argument address and returns the btc address balance as a
     variable "balance_usd" and the btc balance as a variable "balance_btc" """
 
-    # Get exchange rate
-    exchange_rate = get_exchange_rate()
-
     # API endpoint for retrieving balance
     url = f"https://blockchain.info/balance?active={address}"
 
@@ -34,7 +31,7 @@ def get_btc_balance(address):
 
         # Extract balance from the API response
         balance_btc = data[address]['final_balance'] * 1e-8
-        balance_usd = balance_btc * exchange_rate
+        balance_usd = balance_btc * get_exchange_rate()
 
     except requests.exceptions.RequestException as e:
         print(f"Error retrieving BTC balance: {e}")
@@ -47,18 +44,23 @@ def get_btc_balance(address):
 
 
 def get_transaction_history(wallet_address):
+    # Example data for test purposes
+    example_data = [
+        {"date": "2023-06-29", "address": "1Kqd9KRbGyA8xQrrVMoGWPzy6YJ3ZEo7Pu", "BTC_value": "0.1", "USD_value": "3000"},
+        {"date": "2023-06-30", "address": "13VRMQX9N7i9EkRyw5PR75TxKNZAfCwzBZ", "BTC_value": "0.02", "USD_value": "750"},
+        {"date": "2023-07-01", "address": "1Kqd9KRbGyA8xQrrVMoGWPzy6YJ3ZEo7Pu", "BTC_value": "0.05", "USD_value": "1500"},
+        {"date": "2023-07-02", "address": "19yoPQH9PgrTq9r7Ee8mL2emUmxyVUmhrS", "BTC_value": "0.08", "USD_value": "1200"},
+        {"date": "2023-07-03", "address": "1Kqd9KRbGyA8xQrrVMoGWPzy6YJ3ZEo7Pu", "BTC_value": "0.07", "USD_value": "1800"},
+        {"date": "2023-07-04", "address": "13VRMQX9N7i9EkRyw5PR75TxKNZAfCwzBZ", "BTC_value": "0.03", "USD_value": "900"},
+    ]
     # API endpoint for retrieving transaction history
     url = f"https://blockstream.info/api/address/{wallet_address}/txs"
     response = requests.get(url)
     if response.status_code == 200:
+        if not response.json():
+            return example_data
         return response.json()
     else:
-        # Example data for test perposes
-        example_data = [
-            {"date": "2023-07-01", "address": "1Kqd9KRbGyA8xQrrVMoGWPzy6YJ3ZEo7Pu", "amount": "0.05"},
-            {"date": "2023-06-30", "address": "13VRMQX9N7i9EkRyw5PR75TxKNZAfCwzBZ", "amount": "0.02"},
-            {"date": "2023-06-29", "address": "1Kqd9KRbGyA8xQrrVMoGWPzy6YJ3ZEo7Pu", "amount": "0.1"},
-        ]
         return example_data
 
 
@@ -83,15 +85,19 @@ def is_valid_btc_address(address):
 
 
 def send_transaction(send_to=None, from_address=None, amount=None):
-    if send_to is None and from_address is None and amount is None:
-        btc_fee = "0.005" # replace with realtime fee
-        return btc_fee  # Replace X with the actual fee amount
+    """this is a test function and will be replayced"""
+    if send_to is None and from_address is None:
+        btc_fee = 0.0005
+        usd_fee = btc_fee * get_exchange_rate()
+        return float(btc_fee), round(float(usd_fee))
 
-    # Replace the code below with the actual transaction code using a API
+    # Replace the code below with the actual transaction code using an API
     if send_to is not None and from_address is not None and amount is not None:
         return True
 
     return False  # Invalid input
+
+
 
 
 

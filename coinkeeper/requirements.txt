@@ -1,0 +1,7 @@
+auto-py-to-exe
+kivymd
+kivy
+matplotlib
+pandas
+cryptocode
+bitcoin

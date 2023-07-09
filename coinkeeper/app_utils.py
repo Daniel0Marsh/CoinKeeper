@@ -2,29 +2,27 @@ from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.uix.screenmanager import NoTransition, FadeTransition, Screen, ScreenManager
 from kivy.properties import ObjectProperty, StringProperty
+from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.uix.scrollview import ScrollView
-from kivymd.uix.dialog import MDDialog
-from kivy.properties import ObjectProperty, StringProperty
-from kivymd.uix.pickers import MDDatePicker
-from kivymd.uix.dropdownitem import MDDropDownItem
-from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.button import MDFlatButton
-
-import json
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.datatables import MDDataTable
+from kivymd.uix.filemanager import MDFileManager
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+import matplotlib.pyplot as plt
+from kivy.metrics import dp
 from datetime import date
 from datetime import datetime
 from pandas.io import clipboard
-from crypto_btc import *
 from kivy.clock import Clock
+import json
 import os
+from crypto_btc import *
 
-from kivymd.uix.filemanager import MDFileManager
-from kivymd.uix.button import MDRectangleFlatButton
-from kivy.metrics import dp
-
-from kivymd.uix.datatables import MDDataTable
-from kivymd.uix.label import MDLabel
 
 
 Builder.load_file('static/login.kv')

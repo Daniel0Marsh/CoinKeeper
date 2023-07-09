@@ -28,28 +28,8 @@
                     spacing: "8dp"
 
                     MDCard:
-                        size_hint: None, None
-                        size: self.minimum_size
-                        elevation: 2
-                        spacing: '15dp'
-                        padding: '15dp'
-                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                        md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
-
-                        MDRectangleFlatButton:
-                            text: 'Create New Wallet'
-                            on_release: app.change_screen("newWallet")
-
-                        MDRectangleFlatButton:
-                            text: 'User History'
-                            on_release: app.change_screen("user_history")
-
-                        MDRectangleFlatButton:
-                            text: 'Charts'
-
-                    MDCard:
                         size_hint: 1, None
-                        size: "300dp", "200dp"
+                        size: "300dp", "260dp"
                         pos_hint: {"center_x": .5}
                         elevation: 2
                         padding: "8dp"
@@ -62,6 +42,7 @@
                             spacing: "8dp"
 
                             MDLabel:
+                                padding: "8dp"
                                 text: "My Wallets"
                                 font_style: "H6"
                                 theme_text_color: "Primary" if app.theme_cls.theme_style == 'Dark' else "Secondary"
@@ -85,6 +66,24 @@
                                         MDList:
                                             id: walletlist
                                             spacing: 5
+
+                            BoxLayout:
+                                orientation: "horizontal"
+                                spacing: "8dp"
+
+                                MDBoxLayout:
+                                    size_hint: (None, 1)
+                                    width: self.minimum_width
+                                    MDRectangleFlatButton:
+                                        text: 'Create New Wallet'
+                                        on_release: app.change_screen("newWallet")
+
+                                MDBoxLayout:
+                                    size_hint: (None, 1)
+                                    width: self.minimum_width
+                                    MDRectangleFlatButton:
+                                        text: 'User History'
+                                        on_release: app.change_screen("user_history")
 
                     MDCard:
                         size_hint: 1, None

@@ -77,19 +77,22 @@ class CreateAccountScreen(Screen):
             # Convert the dictionary to JSON format
             json_data = json.dumps(user_data)
 
-            # Check if the file already exists
-            file_path = "data/user_data.json"
-            if os.path.exists(file_path):
-                show_popup(title="Error", message="User data already exists.", size=(500, 300))
-            else:
-                # Save the JSON data to a file
-                with open(file_path, "w") as file:
-                    file.write(json_data)
 
-                add_history(event_type="new_account", info=None)
-                self.manager.current = "home"
+            # Check if the file already exists
+            with open("data/user_data.json", "r") as file:
+                existing_data = json.load(file)
+                if existing_data["user_name"]:
+                    show_popup(title="Error", message="User data already exists.", size=(500, 300))
+                else:
+                    # Save the JSON data to a file
+                    with open("data/user_data.json", "w") as file:
+                        file.write(json_data)
+
+                    add_history(event_type="new_account", info=None)
+                    self.manager.current = "home"
         else:
             show_popup(title="Error", message="Please provide all fields.", size=(500, 300))
+
 
 
 
@@ -110,6 +113,11 @@ class HomeScreen(Screen):
             address = wallet_data.get('address', '')
             wallet_bubble = WalletBubble(name=wallet_name, address=address)
             self.walletlist.add_widget(wallet_bubble)
+
+        # Check if there are no wallets
+        if not data:
+            label_bubble = LabelBubble(text="You have no wallets. Create one to view it here!")
+            self.walletlist.add_widget(label_bubble)
 
         # Load existing JSON data from the file
         with open("data/user_history.json", "r") as file:
@@ -271,7 +279,6 @@ class NewWalletScreen(Screen):
 
 
 class WalletScreen(Screen):
-
     def on_enter(self):
         super().on_enter()
 
@@ -281,7 +288,25 @@ class WalletScreen(Screen):
 
         # Set values
         self.address = self.wallet_info.get('address')
+        self.target_amount = self.wallet_info.get('target_amount')
         self.balance_usd, self.balance_btc = get_btc_balance(self.address)
+
+        # Prepare the transaction data for the line chart
+        transactions = get_transaction_history(self.address)
+        data = []
+        for transaction in transactions:
+            date_str = transaction.get('date')
+            btc_value = float(transaction.get('BTC_value'))
+            usd_value = float(transaction.get('USD_value'))
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            data.append((date, btc_value, usd_value))
+
+        # Create and add the line chart widget
+        title = "Wallet Performance"
+        chart = LineChart(data=data, title=title)
+        print(data)
+        self.ids.chart_container.clear_widgets()
+        self.ids.chart_container.add_widget(chart)
 
 
     def switch_currency(self):
@@ -352,9 +377,21 @@ class WithdrawScreen(Screen):
         self.address = self.wallet_info.get('address')
         self.encrypted_private_key = self.wallet_info.get('encrypted_private_key')
         self.balance_usd, self.balance_btc = get_btc_balance(self.address)
-        self.ids.balance_title.text = f" Avalable Balance: ${self.balance_usd}"
-        self.btc_fee = send_transaction(send_to=None, from_address=None)
-        self.ids.btc_fee.text = f" Sending Fee: ${self.btc_fee}"
+
+        # Schedule the interval to update values every 60 seconds
+        self.update_values()  # Initial call with the current TextInput instance
+
+
+    def update_values(self):
+        self.amount = self.ids.amount.text
+        self.btc_fee, self.usd_fee = send_transaction(send_to=None, from_address=None, amount=self.amount)
+        self.gross_cost = self.usd_fee + self.balance_usd
+
+        # Update values
+        self.ids.balance_title.text = f"Available Balance: ${self.balance_usd}"
+        self.ids.fee.text = f"Sending Fee: ${self.usd_fee}"
+        self.ids.gross_cost.text = f"Net Cost: ${self.gross_cost}"
+        self.ids.amount.icon_right = "currency-usd"
 
 
     def cancel(self):
@@ -398,10 +435,18 @@ class WithdrawScreen(Screen):
 
 
     def change_currency(self):
-        if self.ids.balance_title.text == f" Avalable Balance: ${self.balance_usd}":
-            self.ids.balance_title.text = f" Avalable Balance: {self.balance_btc}"
+        if self.ids.balance_title.text == f"Avalable Balance: ${self.balance_usd}":
+            self.ids.balance_title.text = f"Avalable Balance: {self.balance_btc}"
+            self.ids.fee.text = f"Sending Fee: {self.btc_fee}"
+            self.gross_cost = self.btc_fee + self.balance_btc
+            self.ids.gross_cost.text = f"Net Cost: {self.gross_cost}"
+            self.ids.amount.icon_right = "currency-btc"
         else:
-            self.ids.balance_title.text = f" Avalable Balance: ${self.balance_usd}"
+            self.ids.balance_title.text = f"Avalable Balance: ${self.balance_usd}"
+            self.ids.amount.icon_right = "currency-usd"
+            self.ids.fee.text = f"Sending Fee: ${self.usd_fee}"
+            self.gross_cost = self.usd_fee + self.balance_usd
+            self.ids.gross_cost.text = f"Net Cost: ${self.gross_cost}"
 
 
     def set_amount(self, value):
@@ -437,7 +482,8 @@ class TransactionHistoryScreen(Screen):
         column_data = [
             ("Date", dp(30)),
             ("Sent/Received from", dp(80)),
-            ("Amount", dp(30)),
+            ("BTC value", dp(30)),
+            ("USD value", dp(30)),
         ]
 
         row_data = []
@@ -448,7 +494,8 @@ class TransactionHistoryScreen(Screen):
                     ("arrow-bottom-right-bold-box", transaction["address"])
                     if self.address == transaction["address"]
                     else ("arrow-top-left-bold-box", [255 / 256, 165 / 256, 0, 1], transaction["address"]),
-                    ("currency-btc", transaction["amount"])
+                    ("currency-btc", transaction["BTC_value"]),
+                    ("currency-usd", transaction["USD_value"])
                 )
             )
 
@@ -560,6 +607,31 @@ class WalletBubble(MDBoxLayout):
     name = StringProperty('')
     address = StringProperty('')
 
+
+class LabelBubble(MDBoxLayout):
+    '''A widget for displaying labels'''
+    text = StringProperty('')
+
+
+class LineChart(BoxLayout):
+    def __init__(self, data, title=None, **kwargs):
+        super(LineChart, self).__init__(**kwargs)
+
+        # Create a figure and axis for the chart
+        fig, ax = plt.subplots()
+
+        # Add the data to the chart
+        x_values = [point[0] for point in data]
+        y_values = [point[1] for point in data]
+        ax.plot(x_values, y_values)
+
+        # Set the title of the chart
+        if title:
+            ax.set_title(title)
+
+        # Create a canvas for the chart and add it to the widget
+        canvas = FigureCanvasKivyAgg(fig)
+        self.add_widget(canvas)
 
 
 class MyApp(MDApp):

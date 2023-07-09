@@ -249,20 +249,16 @@
                     MDCard:
                         size_hint: 1, None
                         size: "300dp", "260dp"
-                        pos_hint: {"center_x": 0.5}
+                        pos_hint: {"center_x": .5}
                         elevation: 2
-                        padding: "16dp"
+                        padding: "8dp"
+                        spacing: "8dp"
                         md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
 
                         BoxLayout:
                             orientation: "vertical"
-                            spacing: "8dp"
 
-                            MDLabel:
-                                text: 'Proformance'
-                                theme_text_color: "Custom"
-                                text_color: app.theme_cls.primary_color  # Set the text color to the primary color
-                                font_style: 'H6'
-                                halign: "center"
-                                anchor_x: "center"
-                                spacing: "15dp"
+                            BoxLayout:
+                                id: chart_container
+                                orientation: "vertical"
+                                size_hint: 1, 1

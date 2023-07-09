@@ -57,3 +57,40 @@
                         pos_hint: {"center_y": 0.5}
                         halign: "right"
                         on_release: app.wallet_screen_update(root.name)
+
+
+
+<LabelBubble>:
+    size_hint_y: None
+    height: self.minimum_height
+
+    MDBoxLayout:
+        size_hint: 1, None
+        height: self.minimum_height
+        orientation: 'horizontal'
+        padding: "2dp"
+
+        MDCard:
+            size_hint: 1, None
+            elevation: 2
+            padding: "8dp"
+            height: label.texture_size[1] + self.padding[1] * 2
+
+            BoxLayout:
+                orientation: "horizontal"
+                size_hint_x: 1  # Adjust this value to your preference
+
+                MDLabel:
+                    id: label
+                    text: root.text
+                    theme_text_color: "Secondary"
+                    halign: "center"
+                    font_style: "Caption"
+
+                    MDIconButton:
+                        icon: "plus"
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
+                        pos_hint: {"center_y": 0.5}
+                        halign: "left"
+                        on_release: app.change_screen("newWallet")
