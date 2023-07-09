@@ -95,11 +95,11 @@ class CreateAccountScreen(Screen):
 
 
 
-
-
 class HomeScreen(Screen):
     def on_enter(self):
         super().on_enter()
+        check_internet_connection(self)
+
         # Read wallet data from JSON file
         self.walletlist = self.ids['walletlist']
         data = open_file(file_name="data/wallet_data.json", type="r")
@@ -195,6 +195,9 @@ class UserHistoryScreen(Screen):
 
 
 class NewWalletScreen(Screen):
+    def on_enter(self):
+        super().on_enter()
+        check_internet_connection(self)
 
     def show_password(self):
         '''called when the password icon is clicked to display the passowrd and change icon'''
@@ -236,7 +239,7 @@ class NewWalletScreen(Screen):
         }
 
         # Perform validation and wallet creation logic here
-        if self.check(wallet_info):
+        if self.check(wallet_info) and check_internet_connection():
             save_wallet(wallet_info)
             self.clear()
             add_history(event_type="new_wallet", info=wallet_name)
@@ -281,6 +284,7 @@ class NewWalletScreen(Screen):
 class WalletScreen(Screen):
     def on_enter(self):
         super().on_enter()
+        check_internet_connection(self)
 
         # Load the JSON data from the file
         data = open_file(file_name="data/wallet_data.json", type="r")
@@ -364,6 +368,7 @@ class WalletScreen(Screen):
 class WithdrawScreen(Screen):
     def on_enter(self):
         super().on_enter()
+        check_internet_connection(self)
 
         # Access the name value from the WalletScreen
         wallet_screen = self.manager.get_screen('wallet')
@@ -642,6 +647,7 @@ class MyApp(MDApp):
         self.theme_cls.theme_style_switch_animation_duration = 0.4
         self.title = 'CoinKeeper'
         self.check_settings()
+        check_internet_connection(self)
 
         self.screen_manager = ScreenManager(transition=FadeTransition())
         self.screen_manager.add_widget(LoginScreen(name='login'))
@@ -655,6 +661,20 @@ class MyApp(MDApp):
         self.screen_manager.add_widget(UserHistoryScreen(name='user_history'))
 
         return self.screen_manager
+
+
+    def check_internet_connection(self):
+        try:
+            # Attempt to resolve a known host (in this case, Google's public DNS server)
+            host = socket.gethostbyname('dns.google.com')
+            socket.create_connection((host, 80), 2)  # Connect to the host on port 80
+            return True  # Internet connection is available
+        except OSError:
+            pass
+        show_popup(title="No Internet", message="Internet connection lost, wallet information is currently unavailable.", size=(400, 200), button_on=None)
+        self.change_screen("home")
+        return False  # Internet connection is not available
+
 
     def switch_theme_style(self, active):
         if active:
@@ -701,7 +721,6 @@ class MyApp(MDApp):
             self.theme_cls.theme_style = 'Dark'
         else:
             self.theme_cls.theme_style = 'Light'
-
 
 
     def wallet_screen_update(self, wallet_name):
@@ -776,7 +795,6 @@ class MyApp(MDApp):
                 wallet_screen.ids.usd_percentage.text = "N/A"
 
         self.change_screen("wallet")
-
 
 
     def open_file_manager(self):

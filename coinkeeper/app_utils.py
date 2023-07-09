@@ -21,8 +21,8 @@ from pandas.io import clipboard
 from kivy.clock import Clock
 import json
 import os
+import socket
 from crypto_btc import *
-
 
 
 Builder.load_file('static/login.kv')
@@ -37,6 +37,7 @@ Builder.load_file('static/transaction_history.kv')
 Builder.load_file('static/user_history.kv')
 
 Clock.max_iteration = 60 # Increase the iteration limit to 60 (or higher if needed)
+
 
 
 def show_popup(title, message, size=(400, 200), button_on=None):
@@ -119,9 +120,6 @@ def save_wallet(wallet_info):
     with open('data/wallet_data.json', 'w') as file:
         json.dump(data, file)
 
-
-import json
-from datetime import date
 
 def add_history(event_type, info=None):
     # Get today's date
