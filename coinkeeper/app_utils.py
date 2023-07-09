@@ -24,6 +24,8 @@ import os
 import socket
 from crypto_btc import *
 
+from kivy.core.window import Window
+
 Builder.load_file('static/login.kv')
 Builder.load_file('static/home.kv')
 Builder.load_file('static/wallet_bubble.kv')
@@ -37,8 +39,7 @@ Builder.load_file('static/user_history.kv')
 
 Clock.max_iteration = 60 # Increase the iteration limit to 60 (or higher if needed)
 
-
-def show_popup(title, message, size=(400, 200), button_on=None):
+def show_popup(title, message, size=(400, 200)):
     dialog = MDDialog(
         title=title,
         text=message,
@@ -46,18 +47,22 @@ def show_popup(title, message, size=(400, 200), button_on=None):
         size=size,
     )
 
-    if button_on:
-        # Create a button widget
-        button = MDFlatButton(
-            text="Copy",
-            on_release=lambda *args: clipboard.copy(title),
-        )
-
-        # Add the button to the dialog
-        dialog.add_widget(button)
-
     dialog.open()
 
+
+def confirm_popup(title, message, action, size=(400, 200)):
+    dialog = MDDialog(
+        title=title,
+        text=message,
+        size_hint=(None, None),
+        size=size,
+        buttons=[
+            MDFlatButton(text="Continue", on_release=lambda x: action(dialog)),
+            MDFlatButton(text="Cancel", on_release=lambda x: dialog.dismiss())
+        ],
+    )
+
+    dialog.open()
 
 def open_file(file_name, type="r"):
     try:

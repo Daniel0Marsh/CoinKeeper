@@ -47,12 +47,12 @@ def get_btc_balance(address):
 def get_transaction_history(wallet_address):
     # Example data for test purposes
     example_data = [
-        {"date": "2023-06-29", "address": "1Kqd9KRbGyA8xQrrVMoGWPzy6YJ3ZEo7Pu", "BTC_value": "0.1", "USD_value": "3000"},
-        {"date": "2023-06-30", "address": "13VRMQX9N7i9EkRyw5PR75TxKNZAfCwzBZ", "BTC_value": "0.02", "USD_value": "750"},
-        {"date": "2023-07-01", "address": "1Kqd9KRbGyA8xQrrVMoGWPzy6YJ3ZEo7Pu", "BTC_value": "0.05", "USD_value": "1500"},
-        {"date": "2023-07-02", "address": "19yoPQH9PgrTq9r7Ee8mL2emUmxyVUmhrS", "BTC_value": "0.08", "USD_value": "1200"},
-        {"date": "2023-07-03", "address": "1Kqd9KRbGyA8xQrrVMoGWPzy6YJ3ZEo7Pu", "BTC_value": "0.07", "USD_value": "1800"},
-        {"date": "2023-07-04", "address": "13VRMQX9N7i9EkRyw5PR75TxKNZAfCwzBZ", "BTC_value": "0.03", "USD_value": "900"},
+        {"date": "2023-06-20", "address": "1KgA9oTRbn1HXXrXJvSjEfUNZ5DTacU2Ky", "BTC_value": "0.1", "USD_value": "3000"},
+        {"date": "2023-06-25", "address": "1KgA9oTRbn1HXXrXJvSjEfUNZ5DTacU2Ky", "BTC_value": "0.02", "USD_value": "750"},
+        {"date": "2023-07-01", "address": "13FayYiJ6LPVqiYMsuM4Qx7piuGY3LjtVA", "BTC_value": "0.05", "USD_value": "1500"},
+        {"date": "2023-08-05", "address": "19yoPQH9PgrTq9r7Ee8mL2emUmxyVUmhrS", "BTC_value": "0.08", "USD_value": "1200"},
+        {"date": "2023-08-13", "address": "1KgA9oTRbn1HXXrXJvSjEfUNZ5DTacU2Ky", "BTC_value": "0.07", "USD_value": "1800"},
+        {"date": "2023-09-04", "address": "13VRMQX9N7i9EkRyw5PR75TxKNZAfCwzBZ", "BTC_value": "0.03", "USD_value": "900"},
     ]
     # API endpoint for retrieving transaction history
     url = f"https://blockstream.info/api/address/{wallet_address}/txs"

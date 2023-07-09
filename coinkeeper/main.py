@@ -131,7 +131,9 @@ class HomeScreen(Screen):
         ]
 
         row_data = []
-        for event in history_data:
+        for i, event in enumerate(history_data):
+            if i >= 5:  # Only add the first 5 entries
+                break
             row_data.append(
                 (
                     event["event"],  # Use "event" instead of "history"
@@ -182,9 +184,12 @@ class UserHistoryScreen(Screen):
             )
 
         history_table = MDDataTable(
+            use_pagination=True,
             column_data=column_data,
             row_data=row_data,
             elevation=2,
+            check=True,
+            rows_num=10,
         )
 
         # Clear and add the table widget
@@ -220,6 +225,7 @@ class NewWalletScreen(Screen):
         unlock_date = self.ids.date_of_completion.text
         target_amount = self.ids.target_amount.text
         password = self.ids.password.text
+        target_amount = float(target_amount)
         today = date.today()
         open_date = today.strftime("%Y-%m-%d")
 
@@ -238,10 +244,29 @@ class NewWalletScreen(Screen):
 
         # Perform validation and wallet creation logic here
         if self.check(wallet_info):
-            save_wallet(wallet_info)
-            self.clear()
-            add_history(event_type="new_wallet", info=wallet_name)
-            self.manager.current ="home"
+            if unlock_date != open_date and target_amount != 0.0:
+                # Define the confirmed function
+                def confirmed(dialog_instance):
+                    dialog_instance.dismiss()
+                    save_wallet(wallet_info)
+                    self.clear()
+                    add_history(event_type="new_wallet", info=wallet_name)
+                    self.manager.current = "home"
+
+                confirm_popup(
+                    title="Warning",
+                    message=f"You will NOT be able to withdraw funds from this wallet until either {unlock_date} or when the balance reaches ${float(target_amount)}.\n\nProceeding with this action implies your understanding of these conditions.\n\nDo you still wish to proceed?",
+                    action=confirmed,
+                    size=(600, 400)
+                )
+            else:
+                save_wallet(wallet_info)
+                self.clear()
+                add_history(event_type="new_wallet", info=wallet_name)
+                self.manager.current = "home"
+
+
+
 
 
     def check(self, wallet_info):
@@ -305,7 +330,6 @@ class WalletScreen(Screen):
         # Create and add the line chart widget
         title = "Wallet Performance"
         chart = LineChart(data=data, title=title)
-        print(data)
         self.ids.chart_container.clear_widgets()
         self.ids.chart_container.add_widget(chart)
 
@@ -322,12 +346,16 @@ class WalletScreen(Screen):
 
     def delete(self, wallet_name):
         if self.ids.balance.text == "$0.0":
-            data = open_file(file_name="data/wallet_data.json", type="r")
-            wallet_info = data.get(wallet_name)
-            del data[wallet_name]
-            save_file(file_name="data/wallet_data.json", data=data)
-            self.manager.current ="home"
-            add_history(event_type="del_wallet", info=wallet_name)
+            def delete_action(dialog_instance):
+                dialog_instance.dismiss()  # Close the popup dialog
+                data = open_file(file_name="data/wallet_data.json", type="r")
+                wallet_info = data.get(wallet_name)
+                del data[wallet_name]
+                save_file(file_name="data/wallet_data.json", data=data)
+                self.manager.current = "home"
+                add_history(event_type="del_wallet", info=wallet_name)
+
+            confirm_popup(title="Confirm Deletion", message="Are you sure you want to delete the wallet?", action=delete_action)
         else:
             show_popup(title="Error", message="This Wallet is not empty!", size=(500, 300))
 
@@ -647,6 +675,9 @@ class MyApp(MDApp):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         icon_path = os.path.join(current_dir, 'image', 'codeblock_ico_black.png')
         self.icon = icon_path
+
+        # Set the screen size
+        Window.size = (800, 620)
 
         self.screen_manager = ScreenManager(transition=FadeTransition())
         self.screen_manager.add_widget(LoginScreen(name='login'))

@@ -56,7 +56,6 @@
                     MDBoxLayout:
                         adaptive_height: True
                         orientation: 'horizontal'
-                        padding: "8dp"
                         spacing: "8dp"
 
 
@@ -247,18 +246,11 @@
                                     on_release: root.download()
 
                     MDCard:
+                        id: chart_container
                         size_hint: 1, None
-                        size: "300dp", "260dp"
+                        size: "300dp", "250dp"
                         pos_hint: {"center_x": .5}
                         elevation: 2
                         padding: "8dp"
                         spacing: "8dp"
                         md_bg_color: app.theme_cls.bg_dark if app.theme_cls.theme_style == 'Dark' else app.theme_cls.bg_light
-
-                        BoxLayout:
-                            orientation: "vertical"
-
-                            BoxLayout:
-                                id: chart_container
-                                orientation: "vertical"
-                                size_hint: 1, 1
