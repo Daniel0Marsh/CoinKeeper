@@ -3,20 +3,43 @@ import random
 import cryptocode
 from bitcoin import *
 import re
+from kivymd.uix.dialog import MDDialog
+
+# Define a global variable to keep track of the dialog instance
+current_dialog = None
+
+def no_connection():
+    global current_dialog
+    if current_dialog:  # Check if a dialog is already open
+        current_dialog.dismiss()  # Dismiss the current dialog if it exists
+
+    dialog = MDDialog(
+        title="No Internet Connection",
+        text="Unable to retrieve or update data such as transaction history or wallet balance.\n\nPlease check your internet connection and try again.",
+        size_hint=(None, None),
+        size=(400, 200),
+    )
+
+    dialog.open()
+
+    current_dialog = dialog
+
 
 
 def get_exchange_rate():
     """Get the current exchange rate of BTC to USD."""
-
-    url = 'https://api.coingecko.com/api/v3/simple/price'
-    params = {
-        'ids': 'bitcoin',
-        'vs_currencies': 'usd'
-    }
-    response = requests.get(url, params=params)
-    data = response.json()
-    exchange_rate = data['bitcoin']['usd']
-    return exchange_rate
+    try:
+        url = 'https://api.coingecko.com/api/v3/simple/price'
+        params = {
+            'ids': 'bitcoin',
+            'vs_currencies': 'usd'
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        exchange_rate = data['bitcoin']['usd']
+        return exchange_rate
+    except requests.exceptions.RequestException:
+        return 0
 
 
 def get_btc_balance(address):
@@ -33,13 +56,15 @@ def get_btc_balance(address):
         balance_btc = data[address]['final_balance'] * 1e-8
         balance_usd = balance_btc * get_exchange_rate()
 
-    except requests.exceptions.RequestException as e:
-        print(f"Error retrieving BTC balance: {e}")
+    except requests.exceptions.RequestException:
+        no_connection()
         balance_usd = 0.0
         balance_btc = 0.0
 
     # Return the balances
     return balance_usd, balance_btc
+
+
 
 
 def get_transaction_history(wallet_address):
@@ -54,14 +79,20 @@ def get_transaction_history(wallet_address):
         {"date": "2023-08-13", "address": "1KgA9oTRbn1HXXrXJvSjEfUNZ5DTacU2Ky", "BTC_value": "0.07", "USD_value": "1800"},
         {"date": "2023-09-04", "address": "13VRMQX9N7i9EkRyw5PR75TxKNZAfCwzBZ", "BTC_value": "0.03", "USD_value": "900"},
     ]
-    # API endpoint for retrieving transaction history
-    url = f"https://blockstream.info/api/address/{wallet_address}/txs"
-    response = requests.get(url)
-    if response.status_code == 200:
-        if not response.json():
+
+    try:
+        # API endpoint for retrieving transaction history
+        url = f"https://blockstream.info/api/address/{wallet_address}/txs"
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            if not response.json():
+                return None
+            return response.json()
+        else:
             return None
-        return response.json()
-    else:
+
+    except requests.exceptions.RequestException:
         return None
 
 
@@ -106,20 +137,23 @@ def is_valid_btc_address(address):
 def api_send_transaction(from_address, send_to, amount):
     """Send a Bitcoin transaction using the Blockstream API."""
     # Implement the function to send the transaction using the Blockstream API
-
-    endpoint = "https://blockstream.info/api/txs/new"
-    payload = {
-        "inputs": [
-            {"address": from_address}
-        ],
-        "outputs": [
-            {"address": send_to, "value": amount}
-        ]
-    }
-    response = requests.post(endpoint, json=payload)
-    if response.status_code == 200:
-        return "success"
-    else:
+    try:
+        endpoint = "https://blockstream.info/api/txs/new"
+        payload = {
+            "inputs": [
+                {"address": from_address}
+            ],
+            "outputs": [
+                {"address": send_to, "value": amount}
+            ]
+        }
+        response = requests.post(endpoint, json=payload)
+        if response.status_code == 200:
+            return "success"
+        else:
+            return "failure"
+    except requests.exceptions.RequestException:
+        no_connection()
         return "failure"
 
 

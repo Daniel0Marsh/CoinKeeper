@@ -2,6 +2,5 @@ A simple list of things to complete or implement on this project.
 
 Note - add any bugs, issue or improvements here.
 
-- fix screen rendering loading issue when resizing the screen (card shadows)
-- fix theme change updating issue (not all themes change dynamically)
+- fix theme change updating issue (not all elements change dynamically)
 - refractor all code for readability and comply with pep-8

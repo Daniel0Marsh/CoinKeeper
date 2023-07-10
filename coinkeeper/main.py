@@ -444,7 +444,7 @@ class WithdrawScreen(Screen):
                         if send_transaction(send_to=address, from_address=dec_private_key, amount=amount):
                             show_popup(title="Send/Withdraw", message=dec_private_key, size=(500, 300))
                         else:
-                            show_popup(title="Error", message="Unable to send", size=(500, 300))
+                            show_popup(title="Error", message="Network Error, please try again later.", size=(500, 300))
                     else:
                         show_popup(title="Error", message="Incorrect password", size=(500, 300))
                 else:
@@ -494,7 +494,8 @@ class WithdrawScreen(Screen):
 
 
 class TransactionHistoryScreen(Screen):
-    def on_pre_enter(self):
+    def on_enter(self):
+        super().on_enter()
         # Access the name value from the WalletScreen
         wallet_screen = self.manager.get_screen('wallet')
         name_value = wallet_screen.ids.name.text
@@ -519,17 +520,19 @@ class TransactionHistoryScreen(Screen):
         ]
 
         row_data = []
-        for transaction in transaction_data:
-            row_data.append(
-                (
-                    transaction["date"],
-                    ("arrow-bottom-right-bold-box", transaction["address"])
-                    if self.address == transaction["address"]
-                    else ("arrow-top-left-bold-box", [255 / 256, 165 / 256, 0, 1], transaction["address"]),
-                    ("currency-btc", transaction["BTC_value"]),
-                    ("currency-usd", transaction["USD_value"])
+        if transaction_data:
+            for transaction in transaction_data:
+                row_data.append(
+                    (
+                        transaction["date"],
+                        ("arrow-bottom-right-bold-box", transaction["address"])
+                        if self.address == transaction["address"]
+                        else ("arrow-top-left-bold-box", [255 / 256, 165 / 256, 0, 1], transaction["address"]),
+                        ("currency-btc", transaction["BTC_value"]),
+                        ("currency-usd", transaction["USD_value"])
+                    )
                 )
-            )
+
 
         data_table = MDDataTable(
             use_pagination=True,
@@ -553,8 +556,8 @@ class TransactionHistoryScreen(Screen):
 
 class SettingsScreen(Screen):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def on_enter(self):
+        super().on_enter()
 
         with open("data/user_data.json", "r") as file:
             json_data = file.read()
@@ -673,6 +676,13 @@ class LineChart(BoxLayout):
         canvas = FigureCanvasKivyAgg(fig)
         self.add_widget(canvas)
 
+def redraw_widgets(widget):
+    widget.canvas.ask_update()  # Trigger widget redraw
+
+    # Iterate over the children of the widget
+    for child in widget.children:
+        redraw_widgets(child)  # Recursively redraw child widgets
+
 
 class MyApp(MDApp):
     def build(self):
@@ -708,33 +718,20 @@ class MyApp(MDApp):
         self.screen_manager.add_widget(TransactionHistoryScreen(name='transaction_history'))
         self.screen_manager.add_widget(UserHistoryScreen(name='user_history'))
 
-        # Bind check_connection() method to the 'on_touch_down' event of the screen manager
-        self.screen_manager.bind(on_touch_down=self.check_connection)
-
         return self.screen_manager
-
-    def check_connection(self, instance, touch):
-        """Check internet connection and show popup if not available."""
-        if not check_internet_connection():
-            show_popup("No Internet Connection", "Please check your internet connection.")
-            self.screen_manager.current = 'login'
-
-            Clock.schedule_once(self.wait_for_connection, 1)
-
-    def wait_for_connection(self, dt):
-        """Wait for internet connection before continuing."""
-        while not check_internet_connection():
-            Clock.tick()
 
 
     def switch_theme_style(self, active):
+        # Change the theme style
         if active:
             self.theme_cls.theme_style = 'Dark'
         else:
             self.theme_cls.theme_style = 'Light'
 
+
     def change_screen(self, screen):
         self.screen_manager.current = screen
+
 
     def copy_to_clipboard(self, item):
         clipboard.copy(item)
@@ -855,12 +852,13 @@ class MyApp(MDApp):
             select_path=self.select_path,
             ext=['.json']
         )
-        manager.show(documents_dir)  # Show the file manager starting from the documents directory
-        self.file_manager = manager  # Store the file manager instance
+        manager.show(documents_dir)
+        self.file_manager = manager
 
 
     def exit_file_manager(self, *args):
-        self.file_manager.close()  # Close the file manager
+        self.file_manager.close()
+
 
     def select_path(self, path):
         wallet_info = check_file_entries(path)

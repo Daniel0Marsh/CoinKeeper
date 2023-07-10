@@ -39,16 +39,6 @@ Builder.load_file('static/user_history.kv')
 
 Clock.max_iteration = 70 # iteration limit
 
-def check_internet_connection():
-    """
-    Check internet connection by attempting to open a connection to a well-known website and returns True or False.
-    """
-    try:
-        urllib.request.urlopen('http://google.com', timeout=1)
-        return True
-    except urllib.request.URLError:
-        return False
-
 
 def show_popup(title, message, size=(400, 200)):
     dialog = MDDialog(
