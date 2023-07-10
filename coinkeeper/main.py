@@ -126,7 +126,7 @@ class HomeScreen(Screen):
         history_data = existing_data["history"]
 
         column_data = [
-            ("User History", dp(80)),
+            ("Recent User History", dp(80)),
             ("", dp(50)),
         ]
 
@@ -167,7 +167,7 @@ class UserHistoryScreen(Screen):
             existing_data = json.load(file)
 
         # Extract the "history" list from the existing_data dictionary
-        history_data = existing_data["history"]
+        self.history_data = existing_data["history"]
 
         column_data = [
             ("User History", dp(80)),
@@ -175,7 +175,7 @@ class UserHistoryScreen(Screen):
         ]
 
         row_data = []
-        for event in history_data:
+        for event in self.history_data:
             row_data.append(
                 (
                     event["event"],  # Use "event" instead of "history"
@@ -196,6 +196,9 @@ class UserHistoryScreen(Screen):
         table = self.ids.table
         table.clear_widgets()
         table.add_widget(history_table)
+
+    def download(self):
+        download_table(table_data=self.history_data, file_name="user_history.txt")
 
 
 class NewWalletScreen(Screen):
@@ -266,9 +269,6 @@ class NewWalletScreen(Screen):
                 self.manager.current = "home"
 
 
-
-
-
     def check(self, wallet_info):
 
         data = open_file(file_name="data/wallet_data.json", type="r")
@@ -319,13 +319,16 @@ class WalletScreen(Screen):
 
         # Prepare the transaction data for the line chart
         transactions = get_transaction_history(self.address)
-        data = []
-        for transaction in transactions:
-            date_str = transaction.get('date')
-            btc_value = float(transaction.get('BTC_value'))
-            usd_value = float(transaction.get('USD_value'))
-            date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            data.append((date, btc_value, usd_value))
+        if transactions is None:
+            data = []
+        else:
+            data = []
+            for transaction in transactions:
+                date_str = transaction.get('date')
+                btc_value = float(transaction.get('BTC_value'))
+                usd_value = float(transaction.get('USD_value'))
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                data.append((date, btc_value, usd_value))
 
         # Create and add the line chart widget
         title = "Wallet Performance"
@@ -541,6 +544,11 @@ class TransactionHistoryScreen(Screen):
         table.clear_widgets()
         table.add_widget(data_table)
 
+    def download(self):
+        transaction_data = get_transaction_history(self.address)
+
+        download_table(table_data=transaction_data, file_name="wallet_transactions.txt")
+
 
 
 class SettingsScreen(Screen):
@@ -580,6 +588,7 @@ class SettingsScreen(Screen):
             with open("data/user_data.json", "w") as file:
                 json.dump(existing_data, file)
 
+            add_history(event_type="user_info")
             show_popup(title="Success", message="Your User Data has been updated")
         else:
             show_popup(title="Error", message="Please provide all fields.", size=(500, 300))
@@ -598,6 +607,7 @@ class SettingsScreen(Screen):
         with open("data/user_data.json", "w") as file:
             json.dump(existing_data, file)
 
+        add_history(event_type="update_app")
         show_popup(title="Success", message="Your App Settings have been updated")
 
 
@@ -625,6 +635,7 @@ class SettingsScreen(Screen):
             # Clear the password fields
             self.ids.old_password.text = ''
             self.ids.new_password.text = ''
+            add_history(event_type="new_password")
             show_popup(title="Success", message="Your password has been updated")
         else:
             show_popup(title="Error", message="Your old password was incorrect")
@@ -665,13 +676,19 @@ class LineChart(BoxLayout):
 
 class MyApp(MDApp):
     def build(self):
+        # Set theme settings
         self.theme_cls.primary_palette = 'Blue'
         self.theme_cls.theme_style = 'Light'
         self.theme_cls.theme_style_switch_animation = True
         self.theme_cls.theme_style_switch_animation_duration = 0.4
+
+        # Set app title
         self.title = 'CoinKeeper'
+
+        # Check settings
         self.check_settings()
-        #set app icon
+
+        # Set app icon
         current_dir = os.path.dirname(os.path.abspath(__file__))
         icon_path = os.path.join(current_dir, 'image', 'codeblock_ico_black.png')
         self.icon = icon_path
@@ -679,6 +696,7 @@ class MyApp(MDApp):
         # Set the screen size
         Window.size = (800, 620)
 
+        # Create screen manager and add screens
         self.screen_manager = ScreenManager(transition=FadeTransition())
         self.screen_manager.add_widget(LoginScreen(name='login'))
         self.screen_manager.add_widget(HomeScreen(name='home'))
@@ -690,7 +708,23 @@ class MyApp(MDApp):
         self.screen_manager.add_widget(TransactionHistoryScreen(name='transaction_history'))
         self.screen_manager.add_widget(UserHistoryScreen(name='user_history'))
 
+        # Bind check_connection() method to the 'on_touch_down' event of the screen manager
+        self.screen_manager.bind(on_touch_down=self.check_connection)
+
         return self.screen_manager
+
+    def check_connection(self, instance, touch):
+        """Check internet connection and show popup if not available."""
+        if not check_internet_connection():
+            show_popup("No Internet Connection", "Please check your internet connection.")
+            self.screen_manager.current = 'login'
+
+            Clock.schedule_once(self.wait_for_connection, 1)
+
+    def wait_for_connection(self, dt):
+        """Wait for internet connection before continuing."""
+        while not check_internet_connection():
+            Clock.tick()
 
 
     def switch_theme_style(self, active):

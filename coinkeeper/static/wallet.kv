@@ -82,7 +82,7 @@
                                     anchor_x: "center"
                                     pos_hint: {"center_x": .5}
                                     spacing: "15dp"
-
+                                    height: self.parent.height - dp(20)
 
 
                                 BoxLayout:
@@ -114,7 +114,6 @@
                                             halign: "right"
 
                                         Widget:
-
 
 
                                 MDSeparator:
@@ -212,6 +211,7 @@
                                     halign: "center"
                                     anchor_x: "center"
                                     spacing: "15dp"
+                                    height: self.parent.height - dp(20)
 
                                 MDLabel:
                                     id: status

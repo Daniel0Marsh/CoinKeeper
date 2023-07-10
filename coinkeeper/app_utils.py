@@ -1,5 +1,6 @@
 from kivymd.app import MDApp
 from kivy.lang import Builder
+from kivy.core.window import Window
 from kivy.uix.screenmanager import NoTransition, FadeTransition, Screen, ScreenManager
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -13,18 +14,17 @@ from kivymd.uix.pickers import MDDatePicker
 from kivymd.uix.datatables import MDDataTable
 from kivymd.uix.filemanager import MDFileManager
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
-import matplotlib.pyplot as plt
 from kivy.metrics import dp
+from kivy.clock import Clock
+import matplotlib.pyplot as plt
 from datetime import date
 from datetime import datetime
 from pandas.io import clipboard
-from kivy.clock import Clock
 import json
 import os
 import socket
+import urllib.request
 from crypto_btc import *
-
-from kivy.core.window import Window
 
 Builder.load_file('static/login.kv')
 Builder.load_file('static/home.kv')
@@ -37,7 +37,18 @@ Builder.load_file('static/settings.kv')
 Builder.load_file('static/transaction_history.kv')
 Builder.load_file('static/user_history.kv')
 
-Clock.max_iteration = 60 # Increase the iteration limit to 60 (or higher if needed)
+Clock.max_iteration = 70 # iteration limit
+
+def check_internet_connection():
+    """
+    Check internet connection by attempting to open a connection to a well-known website and returns True or False.
+    """
+    try:
+        urllib.request.urlopen('http://google.com', timeout=1)
+        return True
+    except urllib.request.URLError:
+        return False
+
 
 def show_popup(title, message, size=(400, 200)):
     dialog = MDDialog(
@@ -75,6 +86,24 @@ def open_file(file_name, type="r"):
 def save_file(file_name, data):
     with open(file_name, "w") as file:
         json.dump(data, file)
+
+
+def download_table(table_data, file_name):
+
+    if table_data:
+
+        # Create a file for the selected entry
+        file_path = os.path.join(os.path.expanduser("~"), "Downloads", file_name)
+
+        # Save the entry data to the file
+        with open(file_path, "w") as output_file:
+            json.dump(table_data, output_file)
+
+        # Show a popup message indicating successful download
+        show_popup(title="Download", message=f"Exported data to: {file_path}", size=(500, 300))
+    else:
+        # Show a popup message indicating successful download
+        show_popup(title="Error", message="No data to download.")
 
 
 def calculate_days(open_date, unlock_date):
@@ -125,44 +154,34 @@ def save_wallet(wallet_info):
 
 
 def add_history(event_type, info=None):
-    # Get today's date
-    today = date.today()
-    current_date = today.strftime("%Y-%m-%d")
-    current_time = datetime.now().time().strftime('%H:%M:%S')
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    current_time = datetime.now().strftime('%H:%M:%S')
 
-    # Define the message based on the event type and info
-    if info:
-        if event_type == "new_wallet":
-            message = f"Created New Wallet - {info}"
-        else:
-            message = f"Deleted Wallet - {info}"
-    else:
-        if event_type == "login":
-            message = "User Logged in"
-        else:
-            message = "New Account Created"
+    event_messages = {
+        "new_account": "New Account Created",
+        "login": "User Logged in",
+        "new_wallet": f"Created New Wallet - {info}",
+        "del_wallet": f"Deleted Wallet - {info}",
+        "update_app": "Updated App Settings",
+        "user_info": "Updated User Info",
+        "new_password": "Changed Password"
+    }
+
+    message = event_messages.get(event_type)
 
 
     # Create a dictionary with date and history message
     user_data = {"date": current_date +" "+ current_time, "event": message}
 
+    user_data = {"date": f"{current_date} {current_time}", "event": message}
+
     try:
-        # Load existing JSON data from the file
         with open("data/user_history.json", "r") as file:
             existing_data = json.load(file)
     except FileNotFoundError:
         existing_data = {"history": []}
 
-    # Create a list to hold new and existing history data
-    updated_data = [user_data]
+    updated_data = [user_data] + existing_data.get("history", [])
 
-    # Append the existing history data to the list
-    if "history" in existing_data:
-        updated_data.extend(existing_data["history"])
-
-    # Update the JSON data with the updated list
-    updated_json_data = json.dumps({"history": updated_data})
-
-    # Save the updated JSON data to the file
     with open("data/user_history.json", "w") as file:
-        file.write(updated_json_data)
+        json.dump({"history": updated_data}, file)

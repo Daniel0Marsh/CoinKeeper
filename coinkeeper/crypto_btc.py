@@ -2,11 +2,11 @@ import requests
 import random
 import cryptocode
 from bitcoin import *
-import bitcoin
+import re
 
 
 def get_exchange_rate():
-    """ takes no arguments and returnes exchange_rate for btc - usd """
+    """Get the current exchange rate of BTC to USD."""
 
     url = 'https://api.coingecko.com/api/v3/simple/price'
     params = {
@@ -20,8 +20,7 @@ def get_exchange_rate():
 
 
 def get_btc_balance(address):
-    """Takes one argument address and returns the btc address balance as a
-    variable "balance_usd" and the btc balance as a variable "balance_btc" """
+    """Get the BTC address balance in USD and BTC."""
 
     # API endpoint for retrieving balance
     url = f"https://blockchain.info/balance?active={address}"
@@ -36,7 +35,6 @@ def get_btc_balance(address):
 
     except requests.exceptions.RequestException as e:
         print(f"Error retrieving BTC balance: {e}")
-
         balance_usd = 0.0
         balance_btc = 0.0
 
@@ -45,6 +43,8 @@ def get_btc_balance(address):
 
 
 def get_transaction_history(wallet_address):
+    """Get the transaction history for a wallet address."""
+
     # Example data for test purposes
     example_data = [
         {"date": "2023-06-20", "address": "1KgA9oTRbn1HXXrXJvSjEfUNZ5DTacU2Ky", "BTC_value": "0.1", "USD_value": "3000"},
@@ -59,47 +59,93 @@ def get_transaction_history(wallet_address):
     response = requests.get(url)
     if response.status_code == 200:
         if not response.json():
-            return example_data
+            return None
         return response.json()
     else:
-        return example_data
+        return None
 
 
 def create_BTC_keys(encryption_password):
-    """takes one argument encryption_password and returns btc wallet keys and encrypts the private key"""
+    """Create BTC wallet keys and encrypt the private key."""
+
     # create Private Key
     private_key = random_key()
-    #create public key
+    # create public key
     public_key = privtopub(private_key)
     # create a Bitcoin address
     address = pubtoaddr(public_key)
 
     # encrypting the private key
-    encrypted_private_key = cryptocode.encrypt(private_key,encryption_password)
+    encrypted_private_key = cryptocode.encrypt(private_key, encryption_password)
 
     return encrypted_private_key, public_key, address
 
 
 def is_valid_btc_address(address):
-    """this needs completing"""
+    """Check if a BTC wallet address is correct and return True or False."""
+
+    # Check if the address matches the expected format
+    if not re.match(r"^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$", address):
+        return False
+
+    # Perform additional verification using checksum
+    decoded_address = base58_decode(address)
+    if not decoded_address:
+        return False
+
+    # Verify the checksum
+    checksum = decoded_address[-4:]
+    address_bytes = decoded_address[:-4]
+    checksum_hash = double_sha256(address_bytes)[:4]
+    if checksum != checksum_hash:
+        return False
+
     return True
 
 
-def send_transaction(send_to=None, from_address=None, amount=None):
-    """this is a test function and will be replayced"""
-    if send_to is None and from_address is None:
-        btc_fee = 0.0005
-        usd_fee = btc_fee * get_exchange_rate()
-        return float(btc_fee), round(float(usd_fee))
+def api_send_transaction(from_address, send_to, amount):
+    """Send a Bitcoin transaction using the Blockstream API."""
+    # Implement the function to send the transaction using the Blockstream API
 
-    # Replace the code below with the actual transaction code using an API
+    endpoint = "https://blockstream.info/api/txs/new"
+    payload = {
+        "inputs": [
+            {"address": from_address}
+        ],
+        "outputs": [
+            {"address": send_to, "value": amount}
+        ]
+    }
+    response = requests.post(endpoint, json=payload)
+    if response.status_code == 200:
+        return "success"
+    else:
+        return "failure"
+
+
+def send_transaction(send_to=None, from_address=None, amount=None):
+    """Send a Bitcoin transaction from one address to another."""
+
+    if send_to is None and from_address is None:
+        btc_fee = 0.0005  # Replace with the actual BTC fee
+        usd_fee = btc_fee * get_exchange_rate()
+        return float(btc_fee), round(float(usd_fee), 2)
+
+    # transaction code using an API
     if send_to is not None and from_address is not None and amount is not None:
-        return True
+        transaction_result = api_send_transaction(from_address, send_to, amount)
+
+        if transaction_result == "success":
+            return True
+        else:
+            return False
 
     return False  # Invalid input
 
 
 def decrypt(enc_private_key, password):
+    """Decrypt an encrypted private key using a password."""
+
     try:
         dec_private_key = cryptocode.decrypt(enc_private_key, password)
         return dec_private_key
