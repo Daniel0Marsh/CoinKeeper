@@ -1,6 +1,7 @@
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.core.window import Window
+from kivymd.theming import ThemeManager
 from kivy.uix.screenmanager import NoTransition, FadeTransition, Screen, ScreenManager
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -13,7 +14,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.pickers import MDDatePicker
 from kivymd.uix.datatables import MDDataTable
 from kivymd.uix.filemanager import MDFileManager
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+from kivymd.toast import toast
 from kivy.metrics import dp
 from kivy.clock import Clock
 import matplotlib.pyplot as plt
@@ -26,9 +27,7 @@ import socket
 import urllib.request
 from crypto_btc import *
 
-from kivymd.theming import ThemeManager
-from kivymd.toast import toast
-
+# load kivy langouge files
 Builder.load_file('static/login.kv')
 Builder.load_file('static/home.kv')
 Builder.load_file('static/wallet_bubble.kv')

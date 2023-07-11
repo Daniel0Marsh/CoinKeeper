@@ -239,236 +239,6 @@ class UserHistoryScreen(Screen):
         download_table(table_data=self.history_data, file_name="user_history.txt")
 
 
-class WalletScreen(Screen):
-    """The wallet screen displaying wallet information and details."""
-
-    def on_enter(self):
-        """
-        Called when the WalletScreen is entered.
-
-        """
-        super().on_enter()
-
-        # Load the JSON data from the file
-        data = open_file(file_name="data/wallet_data.json", mode="r")
-        self.wallet_info = data.get(self.ids.name.text)
-
-        # Set values
-        self.address = self.wallet_info.get('address')
-        self.target_amount = self.wallet_info.get('target_amount')
-        self.balance_usd, self.balance_btc = get_btc_balance(self.address)
-
-        # Prepare the transaction data for the line chart
-        transactions = get_transaction_history(self.address)
-        data = []
-        if transactions is not None:
-            for transaction in transactions:
-                date_str = transaction.get('date')
-                btc_value = float(transaction.get('BTC_value'))
-                usd_value = float(transaction.get('USD_value'))
-                date = datetime.strptime(date_str, '%Y-%m-%d').date()
-                data.append((date, btc_value, usd_value))
-
-        # Create and add the line chart widget
-        title = "Wallet Performance"
-        chart = LineChart(data=data, title=title)
-        self.ids.chart_container.clear_widgets()
-        self.ids.chart_container.add_widget(chart)
-
-
-    def switch_currency(self):
-        """
-        Switch the currency displayed in the balance title.
-
-        """
-        switch_currency = self.ids.switch_currency.active
-
-        if switch_currency:
-            self.ids.balance_title.text = f"Current Balance: {self.balance_btc}"
-        else:
-            self.ids.balance_title.text = f"Current Balance: ${self.balance_usd}"
-
-
-    def delete(self, wallet_name):
-        """
-        Delete a wallet entry.
-
-        Args:
-            wallet_name (str): The name of the wallet entry to delete.
-
-        """
-        if self.ids.balance.text == "$0.0":
-            def delete_action(dialog_instance):
-                dialog_instance.dismiss()  # Close the popup dialog
-                data = open_file(file_name="data/wallet_data.json", mode="r")
-                wallet_info = data.get(wallet_name)
-                del data[wallet_name]
-                save_file(file_name="data/wallet_data.json", data=data)
-                self.manager.current = "home"
-                add_history(event_type="del_wallet", info=wallet_name)
-
-            confirm_popup(title="Confirm Deletion", message="Are you sure you want to delete the wallet?", action=delete_action)
-        else:
-            show_popup(title="Error", message="This Wallet is not empty!", size=(500, 300))
-
-
-    def withdraw(self):
-        """
-        Navigate to the WithdrawScreen.
-
-        """
-        if self.ids.status.text == "Wallet Status: Locked":
-            show_popup(title="Withdraw", message="This Wallet is currently locked", size=(500, 300))
-        else:
-            self.manager.current = "Withdraw"
-
-
-    def deposit(self):
-        """
-        Display a popup with the wallet address for deposit.
-
-        """
-        show_popup(title="Deposit", message=self.address, size=(500, 300), button_on=False)
-
-
-    def download(self):
-        """
-        Download the wallet data as a JSON file.
-
-        """
-        # Load the JSON data from the file
-        data = open_file(file_name="data/wallet_data.json", mode="r")
-
-        # Find the entry connected to self.ids.status.text
-        entry_data = data.get(self.ids.name.text)
-
-        # Create a file for the selected entry
-        file_name = f"{self.ids.name.text}_wallet_data.json"
-        file_path = os.path.join(os.path.expanduser("~"), "Downloads", file_name)
-
-        # Save the entry data to the file
-        with open(file_path, "w") as output_file:
-            json.dump(entry_data, output_file)
-
-        # Show a popup message indicating successful download
-        show_popup(title="Download", message=f"Exported data to: {file_path}", size=(500, 300))
-
-
-
-class WithdrawScreen(Screen):
-    """The screen for performing a withdrawal from a wallet."""
-
-    def on_enter(self):
-        """Called when the screen is entered."""
-        super().on_enter()
-
-        # Access the name value from the WalletScreen
-        wallet_screen = self.manager.get_screen('wallet')
-        name_value = wallet_screen.ids.name.text
-
-        # Load the JSON data from the file
-        data = open_file(file_name="data/wallet_data.json", mode="r")
-        self.wallet_info = data.get(name_value)
-
-        # Set values
-        self.address = self.wallet_info.get('address')
-        self.encrypted_private_key = self.wallet_info.get('encrypted_private_key')
-        self.balance_usd, self.balance_btc = get_btc_balance(self.address)
-
-        # Schedule the interval to update values every 60 seconds
-        self.update_values()  # Initial call with the current TextInput instance
-
-
-    def update_values(self):
-        """Update the displayed values based on the input field values."""
-        self.amount = self.ids.amount.text
-        self.btc_fee, self.usd_fee = send_transaction(send_to=None, from_address=None, amount=self.amount)
-        self.gross_cost = self.usd_fee + self.balance_usd
-
-        # Update values
-        self.ids.balance_title.text = f"Available Balance: ${self.balance_usd}"
-        self.ids.fee.text = f"Sending Fee: ${self.usd_fee}"
-        self.ids.gross_cost.text = f"Net Cost: ${self.gross_cost}"
-        self.ids.amount.icon_right = "currency-usd"
-
-
-    def cancel(self):
-        """Cancel the withdrawal and return to the wallet screen."""
-        self.clear()
-        self.manager.current = "wallet"
-
-
-    def send(self):
-        """Send the withdrawal transaction."""
-        amount = self.ids.amount.text
-        password = self.ids.password.text
-        address = self.ids.address.text
-
-        if amount and password and address:
-            if float(amount) < self.balance_usd and float(amount) != 0:
-                if is_valid_btc_address(address):
-                    dec_private_key = decrypt(self.encrypted_private_key, password)
-                    if dec_private_key:
-                        if send_transaction(send_to=address, from_address=dec_private_key, amount=amount):
-                            self.manager.current = "wallet"
-                            toast("Withdrawal succesfully")
-                            self.clear()
-                        else:
-                            show_popup(title="Error", message="Network Error, please try again later.", size=(500, 300))
-                    else:
-                        show_popup(title="Error", message="Incorrect password", size=(500, 300))
-                else:
-                    show_popup(title="Error", message="Invalid Bitcoin address", size=(500, 300))
-            else:
-                show_popup(title="Error", message="Insufficient funds", size=(500, 300))
-        else:
-            show_popup(title="Error", message="Please provide all fields.", size=(500, 300))
-
-
-    def help(self):
-        """Show a help popup with instructions for performing a withdrawal."""
-        message = "To send a transaction, fill in the following fields:\n\n"
-        message += "- Amount: Enter the amount of Bitcoin you want to send.\n"
-        message += "- Password: Provide your password to decrypt the private key.\n"
-        message += "- Address: Specify the recipient's Bitcoin address.\n\n"
-        message += "Once you have filled in all the fields, click the 'Send' button to proceed with the transaction.\n"
-        message += "Please make sure to double-check the recipient's address before sending.\n\n"
-        message += "If you encounter any issues or errors, please refer to the error messages displayed or contact our support team for assistance."
-        show_popup(title="Help", message=message, size=(500, 300))
-
-
-    def change_currency(self):
-        """Toggle between USD and BTC currency for displayed values."""
-        if self.ids.balance_title.text == f"Available Balance: ${self.balance_usd}":
-            self.ids.balance_title.text = f"Available Balance: {self.balance_btc}"
-            self.ids.fee.text = f"Sending Fee: {self.btc_fee}"
-            self.gross_cost = self.btc_fee + self.balance_btc
-            self.ids.gross_cost.text = f"Net Cost: {self.gross_cost}"
-            self.ids.amount.icon_right = "currency-btc"
-        else:
-            self.ids.balance_title.text = f"Available Balance: ${self.balance_usd}"
-            self.ids.amount.icon_right = "currency-usd"
-            self.ids.fee.text = f"Sending Fee: ${self.usd_fee}"
-            self.gross_cost = self.usd_fee + self.balance_usd
-            self.ids.gross_cost.text = f"Net Cost: ${self.gross_cost}"
-
-
-    def set_amount(self, value):
-        """Set the withdrawal amount based on the specified value.
-
-        :param float value: The value used to calculate the withdrawal amount.
-        """
-        if self.balance_usd > 0.0:
-            self.ids.amount.text = str(self.balance_usd / value)
-
-
-    def clear(self):
-        """Clear the input fields."""
-        self.ids.amount.text = ""
-        self.ids.password.text = ""
-        self.ids.address.text = ""
-
-
 class NewWalletScreen(Screen):
     """The screen for creating a new wallet."""
 
@@ -603,6 +373,235 @@ class NewWalletScreen(Screen):
                     "- IMPORTANT: The wallet will only become accessible once the Unlock Date or the target amount has been reached.\n\n",
             size=(700, 700)
         )
+
+
+class WalletScreen(Screen):
+    """The wallet screen displaying wallet information and details."""
+
+    def on_enter(self):
+        """
+        Called when the WalletScreen is entered.
+
+        """
+        super().on_enter()
+
+        # Load the JSON data from the file
+        data = open_file(file_name="data/wallet_data.json", mode="r")
+        self.wallet_info = data.get(self.ids.name.text)
+
+        # Set values
+        self.address = self.wallet_info.get('address')
+        self.target_amount = self.wallet_info.get('target_amount')
+        self.balance_usd, self.balance_btc = get_btc_balance(self.address)
+
+        # Prepare the transaction data for the line chart
+        transactions = get_transaction_history(self.address)
+        data = []
+        if transactions is not None:
+            for transaction in transactions:
+                date_str = transaction.get('date')
+                btc_value = float(transaction.get('BTC_value'))
+                usd_value = float(transaction.get('USD_value'))
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                data.append((date, btc_value, usd_value))
+
+        # Create and add the line chart widget
+        title = "Wallet Performance"
+        chart = LineChart(data=data, title=title)
+        self.ids.chart_container.clear_widgets()
+        self.ids.chart_container.add_widget(chart)
+
+
+    def switch_currency(self):
+        """
+        Switch the currency displayed in the balance title.
+
+        """
+        switch_currency = self.ids.switch_currency.active
+
+        if switch_currency:
+            self.ids.balance_title.text = f"Current Balance: {self.balance_btc}"
+        else:
+            self.ids.balance_title.text = f"Current Balance: ${self.balance_usd}"
+
+
+    def delete(self, wallet_name):
+        """
+        Delete a wallet entry.
+
+        Args:
+            wallet_name (str): The name of the wallet entry to delete.
+
+        """
+        if self.ids.balance.text == "$0.0":
+            def delete_action(dialog_instance):
+                dialog_instance.dismiss()  # Close the popup dialog
+                data = open_file(file_name="data/wallet_data.json", mode="r")
+                wallet_info = data.get(wallet_name)
+                del data[wallet_name]
+                save_file(file_name="data/wallet_data.json", data=data)
+                self.manager.current = "home"
+                add_history(event_type="del_wallet", info=wallet_name)
+
+            confirm_popup(title="Confirm Deletion", message="Are you sure you want to delete the wallet?", action=delete_action)
+        else:
+            show_popup(title="Error", message="This Wallet is not empty!", size=(500, 300))
+
+
+    def withdraw(self):
+        """
+        Navigate to the WithdrawScreen.
+
+        """
+        if self.ids.status.text == "Wallet Status: Locked":
+            show_popup(title="Withdraw", message="This Wallet is currently locked", size=(500, 300))
+        else:
+            self.manager.current = "Withdraw"
+
+
+    def deposit(self):
+        """
+        Display a popup with the wallet address for deposit.
+
+        """
+        show_popup(title="Deposit", message=self.address, size=(500, 300), button_on=False)
+
+
+    def download(self):
+        """
+        Download the wallet data as a JSON file.
+
+        """
+        # Load the JSON data from the file
+        data = open_file(file_name="data/wallet_data.json", mode="r")
+
+        # Find the entry connected to self.ids.status.text
+        entry_data = data.get(self.ids.name.text)
+
+        # Create a file for the selected entry
+        file_name = f"{self.ids.name.text}_wallet_data.json"
+        file_path = os.path.join(os.path.expanduser("~"), "Downloads", file_name)
+
+        # Save the entry data to the file
+        with open(file_path, "w") as output_file:
+            json.dump(entry_data, output_file)
+
+        # Show a popup message indicating successful download
+        show_popup(title="Download", message=f"Exported data to: {file_path}", size=(500, 300))
+
+
+class WithdrawScreen(Screen):
+    """The screen for performing a withdrawal from a wallet."""
+
+    def on_enter(self):
+        """Called when the screen is entered."""
+        super().on_enter()
+
+        # Access the name value from the WalletScreen
+        wallet_screen = self.manager.get_screen('wallet')
+        name_value = wallet_screen.ids.name.text
+
+        # Load the JSON data from the file
+        data = open_file(file_name="data/wallet_data.json", mode="r")
+        self.wallet_info = data.get(name_value)
+
+        # Set values
+        self.address = self.wallet_info.get('address')
+        self.encrypted_private_key = self.wallet_info.get('encrypted_private_key')
+        self.balance_usd, self.balance_btc = get_btc_balance(self.address)
+
+        # Schedule the interval to update values every 60 seconds
+        self.update_values()  # Initial call with the current TextInput instance
+
+
+    def update_values(self):
+        """Update the displayed values based on the input field values."""
+        self.amount = self.ids.amount.text
+        self.btc_fee, self.usd_fee = send_transaction(send_to=None, from_address=None, amount=self.amount)
+        self.gross_cost = self.usd_fee + self.balance_usd
+
+        # Update values
+        self.ids.balance_title.text = f"Available Balance: ${self.balance_usd}"
+        self.ids.fee.text = f"Sending Fee: ${self.usd_fee}"
+        self.ids.gross_cost.text = f"Net Cost: ${self.gross_cost}"
+        self.ids.amount.icon_right = "currency-usd"
+
+
+    def cancel(self):
+        """Cancel the withdrawal and return to the wallet screen."""
+        self.clear()
+        self.manager.current = "wallet"
+
+
+    def send(self):
+        """Send the withdrawal transaction."""
+        amount = self.ids.amount.text
+        password = self.ids.password.text
+        address = self.ids.address.text
+
+        if amount and password and address:
+            if float(amount) < self.balance_usd and float(amount) != 0:
+                if is_valid_btc_address(address):
+                    dec_private_key = decrypt(self.encrypted_private_key, password)
+                    if dec_private_key:
+                        if send_transaction(send_to=address, from_address=dec_private_key, amount=amount):
+                            self.manager.current = "wallet"
+                            toast("Withdrawal succesfully")
+                            self.clear()
+                        else:
+                            show_popup(title="Error", message="Network Error, please try again later.", size=(500, 300))
+                    else:
+                        show_popup(title="Error", message="Incorrect password", size=(500, 300))
+                else:
+                    show_popup(title="Error", message="Invalid Bitcoin address", size=(500, 300))
+            else:
+                show_popup(title="Error", message="Insufficient funds", size=(500, 300))
+        else:
+            show_popup(title="Error", message="Please provide all fields.", size=(500, 300))
+
+
+    def help(self):
+        """Show a help popup with instructions for performing a withdrawal."""
+        message = "To send a transaction, fill in the following fields:\n\n"
+        message += "- Amount: Enter the amount of Bitcoin you want to send.\n"
+        message += "- Password: Provide your password to decrypt the private key.\n"
+        message += "- Address: Specify the recipient's Bitcoin address.\n\n"
+        message += "Once you have filled in all the fields, click the 'Send' button to proceed with the transaction.\n"
+        message += "Please make sure to double-check the recipient's address before sending.\n\n"
+        message += "If you encounter any issues or errors, please refer to the error messages displayed or contact our support team for assistance."
+        show_popup(title="Help", message=message, size=(500, 300))
+
+
+    def change_currency(self):
+        """Toggle between USD and BTC currency for displayed values."""
+        if self.ids.balance_title.text == f"Available Balance: ${self.balance_usd}":
+            self.ids.balance_title.text = f"Available Balance: {self.balance_btc}"
+            self.ids.fee.text = f"Sending Fee: {self.btc_fee}"
+            self.gross_cost = self.btc_fee + self.balance_btc
+            self.ids.gross_cost.text = f"Net Cost: {self.gross_cost}"
+            self.ids.amount.icon_right = "currency-btc"
+        else:
+            self.ids.balance_title.text = f"Available Balance: ${self.balance_usd}"
+            self.ids.amount.icon_right = "currency-usd"
+            self.ids.fee.text = f"Sending Fee: ${self.usd_fee}"
+            self.gross_cost = self.usd_fee + self.balance_usd
+            self.ids.gross_cost.text = f"Net Cost: ${self.gross_cost}"
+
+
+    def set_amount(self, value):
+        """Set the withdrawal amount based on the specified value.
+
+        :param float value: The value used to calculate the withdrawal amount.
+        """
+        if self.balance_usd > 0.0:
+            self.ids.amount.text = str(self.balance_usd / value)
+
+
+    def clear(self):
+        """Clear the input fields."""
+        self.ids.amount.text = ""
+        self.ids.password.text = ""
+        self.ids.address.text = ""
 
 
 class TransactionHistoryScreen(Screen):
@@ -788,13 +787,13 @@ class WalletBubble(MDBoxLayout):
     """A widget for displaying wallet bubbles."""
 
     name = StringProperty('')  # The name of the wallet
-    address = StringProperty('')  # The address of the wallet
+    address = StringProperty('')
 
 
 class LabelBubble(MDBoxLayout):
     """A widget for displaying labels."""
 
-    text = StringProperty('')  # The text to display
+    text = StringProperty('') 
 
 
 class LineChart(BoxLayout):
