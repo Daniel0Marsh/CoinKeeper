@@ -27,8 +27,8 @@
                     height: dp(48)
 
                 MDTextField:
-                    id: target_amount
-                    hint_text: 'Target Amount'
+                    id: target_value
+                    hint_text: 'Target Value'
                     size_hint_y: None
                     height: dp(48)
 
@@ -86,7 +86,7 @@
                         text: 'Cancel'
                         size_hint: None, None
                         size: dp(200), dp(48)
-                        on_release: app.change_screen("home")
+                        on_release: root.cancel()
 
                     MDIconButton:
                         icon: "help-circle"

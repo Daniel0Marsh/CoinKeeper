@@ -1,5 +1,3 @@
 A simple list of things to complete or implement on this project.
 
 Note - add any bugs, issue or improvements here.
-
-- refractor all code for readability (comply with pep-8)
