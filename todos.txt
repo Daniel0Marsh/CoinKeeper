@@ -2,5 +2,4 @@ A simple list of things to complete or implement on this project.
 
 Note - add any bugs, issue or improvements here.
 
-- fix theme change updating issue (not all elements change dynamically)
-- refractor all code for readability and comply with pep-8
+- refractor all code for readability (comply with pep-8)

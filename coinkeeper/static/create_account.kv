@@ -8,7 +8,7 @@
 
         MDCard:
             size_hint: None, None
-            size: "500dp", "450dp"
+            size: "500dp", "500dp"
             elevation: 2
             spacing: '15dp'
             padding: '15dp'
@@ -52,6 +52,21 @@
                         id: password_icon
                         icon: 'eye-off'
                         on_release: root.show_password()
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(48)
+
+                    MDTextField:
+                        id: password_confim
+                        hint_text: 'Confirm Password'
+                        size_hint_y: None
+                        height: dp(48)
+                        password: True
+                    MDIconButton:
+                        id: password_confim_icon
+                        icon: 'eye-off'
+                        on_release: root.show_confirm_password()
 
                 BoxLayout:
                     orientation: "horizontal"

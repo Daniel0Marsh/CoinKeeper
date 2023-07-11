@@ -53,43 +53,52 @@ class CreateAccountScreen(Screen):
         self.ids.password.password = not self.ids.password.password
         self.ids.password_icon.icon = "eye-off" if self.ids.password.password else "eye"
 
+    def show_confirm_password(self):
+        '''called when the password icon is clicked to display the password and change icon'''
+        self.ids.password_confim.password = not self.ids.password_confim.password
+        self.ids.password_confim_icon.icon = "eye-off" if self.ids.password_confim.password else "eye"
+
     def create_account(self):
         first_name = self.ids.first_name.text
         last_name = self.ids.last_name.text
         email = self.ids.email.text
         password = self.ids.password.text
+        password_confim = self.ids.password_confim.text
         switch_theme = False
         switch_notifications = False
 
-        if first_name and last_name and email and password:
-            # Create a dictionary to hold the user data
-            user_name = first_name + "." + last_name
-            user_data = {
-                "first_name": first_name,
-                "last_name": last_name,
-                "user_name": user_name,
-                "email": email,
-                "password": password,
-                "switch_theme": switch_theme,
-                "switch_notifications": switch_notifications,
-            }
+        if first_name and last_name and email and password and password_confim:
+            if password == password_confim:
+                # Create a dictionary to hold the user data
+                user_name = first_name + "." + last_name
+                user_data = {
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "user_name": user_name,
+                    "email": email,
+                    "password": password,
+                    "switch_theme": switch_theme,
+                    "switch_notifications": switch_notifications,
+                }
 
-            # Convert the dictionary to JSON format
-            json_data = json.dumps(user_data)
+                # Convert the dictionary to JSON format
+                json_data = json.dumps(user_data)
 
 
-            # Check if the file already exists
-            with open("data/user_data.json", "r") as file:
-                existing_data = json.load(file)
-                if existing_data["user_name"]:
-                    show_popup(title="Error", message="User data already exists.", size=(500, 300))
-                else:
-                    # Save the JSON data to a file
-                    with open("data/user_data.json", "w") as file:
-                        file.write(json_data)
+                # Check if the file already exists
+                with open("data/user_data.json", "r") as file:
+                    existing_data = json.load(file)
+                    if existing_data["user_name"]:
+                        show_popup(title="Error", message="User data already exists.", size=(500, 300))
+                    else:
+                        # Save the JSON data to a file
+                        with open("data/user_data.json", "w") as file:
+                            file.write(json_data)
 
-                    add_history(event_type="new_account", info=None)
-                    self.manager.current = "home"
+                        add_history(event_type="new_account", info=None)
+                        self.manager.current = "home"
+            else:
+                show_popup(title="Error", message="Passwords dont match", size=(500, 300))
         else:
             show_popup(title="Error", message="Please provide all fields.", size=(500, 300))
 
@@ -615,9 +624,14 @@ class SettingsScreen(Screen):
 
 
     def show_new_password(self):
-        '''called when the password icon is clicked to display the passowrd and change icon'''
+        '''called when the password icon is clicked to display the password and change icon'''
         self.ids.new_password.password = not self.ids.new_password.password
         self.ids.new_password_icon.icon = "eye-off" if self.ids.new_password.password else "eye"
+
+    def show_confirm_new_password(self):
+        '''called when the password icon is clicked to display the password and change icon'''
+        self.ids.confirm_new_password.password = not self.ids.confirm_new_password.password
+        self.ids.confirm_new_password_icon.icon = "eye-off" if self.ids.password_confim.password else "eye"
 
     def show_old_password(self):
         '''called when the password icon is clicked to display the passowrd and change icon'''
@@ -626,22 +640,31 @@ class SettingsScreen(Screen):
 
 
     def save_password(self):
-        if self.ids.old_password.text == self.user_data.get("password") and self.ids.old_password.text != '':
+        if self.ids.old_password.text and self.ids.old_password.text  and self.ids.confirm_new_password.text != '':
 
-            # Update the password in the user_data dictionary
-            self.user_data["password"] = self.ids.new_password.text
+            if self.ids.new_password.text == self.ids.confirm_new_password.text:
 
-            # Save the updated user_data dictionary back to the JSON file
-            with open("data/user_data.json", "w") as file:
-                json.dump(self.user_data, file)
+                if self.ids.old_password.text ==  self.user_data.get("password") and self.ids.old_password.text != '':
 
-            # Clear the password fields
-            self.ids.old_password.text = ''
-            self.ids.new_password.text = ''
-            add_history(event_type="new_password")
-            show_popup(title="Success", message="Your password has been updated")
+                    # Update the password in the user_data dictionary
+                    self.user_data["password"] = self.ids.new_password.text
+
+                    # Save the updated user_data dictionary back to the JSON file
+                    with open("data/user_data.json", "w") as file:
+                        json.dump(self.user_data, file)
+
+                    # Clear the password fields
+                    self.ids.old_password.text = ''
+                    self.ids.new_password.text = ''
+                    self.ids.confirm_new_password.text = ''
+                    add_history(event_type="new_password")
+                    show_popup(title="Success", message="Your password has been updated")
+                else:
+                    show_popup(title="Error", message="Your old password was incorrect")
+            else:
+                show_popup(title="Error", message="Passwords dont match")
         else:
-            show_popup(title="Error", message="Your old password was incorrect")
+            show_popup(title="Error", message="Please provide all fields.")
 
 
 
@@ -687,7 +710,7 @@ def redraw_widgets(widget):
 class MyApp(MDApp):
     def build(self):
         # Set theme settings
-        self.theme_cls.primary_palette = 'Blue'
+        self.theme_cls.primary_palette = 'Blue' # BlueGray
         self.theme_cls.theme_style = 'Light'
         self.theme_cls.theme_style_switch_animation = True
         self.theme_cls.theme_style_switch_animation_duration = 0.4
@@ -727,6 +750,8 @@ class MyApp(MDApp):
             self.theme_cls.theme_style = 'Dark'
         else:
             self.theme_cls.theme_style = 'Light'
+        show_popup(title="Warning", message="You may need to restart the applicatin for theme changes to fully take effect")
+
 
 
     def change_screen(self, screen):
